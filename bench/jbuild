@@ -1,0 +1,3 @@
+(library
+ ((name parsexp_bench)
+  (libraries (core_kernel parsexp sexplib))))

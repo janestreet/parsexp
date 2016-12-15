@@ -1,0 +1,12 @@
+;; These tests are here rather than in sexplib/src to avoid adding a build dependency of
+;; sexplib on ppx_inline_test.
+(library
+ ((name parsexp_test)
+  (libraries (base
+              stdio
+              parsexp
+              gen_parsexp_lib
+              sexplib
+              expect_test_helpers_kernel))))
+
+(ocamllex (lexer))

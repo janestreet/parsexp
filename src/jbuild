@@ -1,0 +1,21 @@
+(library
+ ((name parsexp)
+  (public_name parsexp)
+  (libraries (base))
+  ;; parsexp is one the libraries for which we are careful about
+  ;; dependencies, you can add ppx rewriters but only when you need
+  ;; them
+  (preprocess (pps (-no-optcomp
+                      ppx_js_style -check-doc-comments
+                      ppx_sexp_conv
+                      ppx_sexp_value
+                      ppx_compare
+                      ppx_fields_conv)))
+  (js_of_ocaml ())))
+
+(rule
+ ((targets (parser_automaton.ml))
+  (deps (gen/gen_parser_automaton.exe))
+  (action "./${<} > ${@}")))
+
+(enforce_style ())
