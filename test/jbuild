@@ -7,6 +7,7 @@
               parsexp
               gen_parsexp_lib
               sexplib
-              expect_test_helpers_kernel))))
+              expect_test_helpers_kernel))
+  (js_of_ocaml ())))
 
 (ocamllex (lexer))
