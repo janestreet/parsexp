@@ -1,7 +1,6 @@
 (** Compact set of positions *)
 
 open! Base
-open! Import
 
 (** A [t] value represent a sequence of positions. The focus is on small memory footprint.
 

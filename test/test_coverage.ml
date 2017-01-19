@@ -13,8 +13,6 @@ open Gen_parsexp_lib.Automaton
    they only test the main parser.
 *)
 
-module Pervasives = Caml.Pervasives
-
 (* Compute the classes of character that give the same transition whatever the state. *)
 module Char_class = struct
   open Table

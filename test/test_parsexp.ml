@@ -1,8 +1,6 @@
 open Import
 open Parsexp
 
-module Pervasives = Caml.Pervasives
-
 let%expect_test "unterminated sexp" =
   let test s =
     Single.parse_string s

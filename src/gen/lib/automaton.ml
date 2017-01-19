@@ -10,8 +10,6 @@
 
 open Base
 
-module Pervasives = Caml.Pervasives
-
 module State = struct
   module Quoted_string = struct
     type t =

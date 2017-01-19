@@ -1,5 +1,4 @@
 open Base
-open Import
 
 module Public = struct
   type stack =

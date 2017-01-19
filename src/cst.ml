@@ -1,5 +1,4 @@
 open! Base
-open! Import
 
 type t =
   | Atom of

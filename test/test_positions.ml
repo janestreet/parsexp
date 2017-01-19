@@ -1,7 +1,5 @@
 open Import
 
-module Pervasives = Caml.Pervasives
-
 module P = Parsexp.Positions
 
 let cases =

@@ -1,7 +1,6 @@
 (** Internal bits used by the generated automaton, not part of the public API *)
 
 open Base
-open Import
 
 (*_ Interface exposed in [Parser_automaton] *)
 module Public :

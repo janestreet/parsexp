@@ -62,9 +62,6 @@
 *)
 
 open Base
-open Import
-
-module Pervasives = Caml.Pervasives
 
 type pos =
   { line   : int

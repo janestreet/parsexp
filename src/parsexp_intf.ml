@@ -1,7 +1,6 @@
 (** Parsing of s-expression *)
 
 open! Base
-open! Import
 
 module type Parser_state = sig
   (** State of the parser *)

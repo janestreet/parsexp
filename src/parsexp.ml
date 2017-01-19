@@ -1,5 +1,4 @@
 open! Base
-open! Import
 
 module Positions = Positions
 module Cst       = Cst
