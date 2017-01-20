@@ -101,7 +101,7 @@ let%expect_test "eager parser incorrect mutation" =
   show_raise (fun () ->
     hot_loop !state stream P.Stack.empty);
   [%expect {|
-    (raised (exn "Assert_failure parser_automaton_internal.ml:*:*")) (glob)
+    (raised "Assert_failure parser_automaton_internal.ml:*:*") (glob)
   |}]
 ;;
 
@@ -116,6 +116,6 @@ let%expect_test "eager parser feed after raise without reset" =
   show_raise (fun () ->
     hot_loop state stream P.Stack.empty);
   [%expect {|
-    (raised (exn (Failure "Parsexp.Parser_automaton: parser is dead")))
+    (raised (Failure "Parsexp.Parser_automaton: parser is dead"))
   |}]
 ;;
