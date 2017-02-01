@@ -1,4 +1,4 @@
-open Core_kernel.Std
+open Core_kernel
 
 let data =
   let data_fn = "data.sexp" in
