@@ -11,3 +11,5 @@
   (js_of_ocaml ())))
 
 (ocamllex (lexer))
+
+(jbuild_version jane_street)
