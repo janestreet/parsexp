@@ -1,5 +1,6 @@
 (library
  ((name parsexp_bench)
-  (libraries (core_kernel parsexp sexplib))))
+  (libraries (core_kernel parsexp sexplib))
+  (preprocess (pps (ppx_jane)))))
 
 (jbuild_version jane_street)

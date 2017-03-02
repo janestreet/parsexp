@@ -11,13 +11,12 @@
                       ppx_sexp_value
                       ppx_compare
                       ppx_fields_conv)))
-  (js_of_ocaml ())))
+))
 
 (rule
  ((targets (parser_automaton.ml))
   (deps (gen/gen_parser_automaton.exe))
   (action "./${<} > ${@}")))
 
-(enforce_style ())
 
 (jbuild_version jane_street)

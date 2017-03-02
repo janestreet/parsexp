@@ -6,6 +6,5 @@
                       ppx_sexp_conv
                       ppx_compare)))))
 
-(enforce_style ())
 
 (jbuild_version jane_street)
