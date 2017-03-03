@@ -16,7 +16,7 @@
 (rule
  ((targets (parser_automaton.ml))
   (deps (gen/gen_parser_automaton.exe))
-  (action "./${<} > ${@}")))
+  (action (bash "./${<} > ${@}"))))
 
 
 (jbuild_version jane_street)
