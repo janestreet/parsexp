@@ -10,7 +10,7 @@
                       ppx_sexp_conv
                       ppx_sexp_value
                       ppx_compare
-                      ppx_fields_conv)))
+                      ppx_fields_conv ppx_driver.runner)))
 ))
 
 (rule
