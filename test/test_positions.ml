@@ -81,6 +81,41 @@ let%expect_test "build_positions_simple" =
   |}]
 ;;
 
+let check_all_subsexps_map_to_their_position s sexps positions =
+  let check_subsexp subsexp =
+    match P.find_sub_sexp_in_list_phys positions sexps ~sub:subsexp with
+    | None -> failwith "not found"
+    | Some range ->
+      assert (Sexp.(=) (Parsexp.Single.parse_string_exn (
+        String.sub s
+          ~pos:range.start_pos.offset
+          ~len:(range.end_pos.offset - range.start_pos.offset))) subsexp)
+  in
+  let rec iter sexps =
+    List.iter sexps ~f:(fun sexp ->
+      check_subsexp sexp;
+      match sexp with
+      | Atom _ -> ()
+      | List l -> iter l)
+  in
+  iter sexps
+;;
+
+let%expect_test "build_positions_ignore_commented_expr" =
+  let f s =
+    let sexps, positions = Parsexp.Many_and_positions.parse_string_exn s in
+    print_s [%sexp (P.to_list positions : P.pos list)];
+    check_all_subsexps_map_to_their_position s sexps positions;
+  in
+  f "a #;((b)) c";
+  [%expect{|
+    (((line 1) (col 0)  (offset 0))
+     ((line 1) (col 0)  (offset 0))
+     ((line 1) (col 10) (offset 10))
+     ((line 1) (col 10) (offset 10)))
+  |}]
+;;
+
 let%expect_test "all" =
   List.iter cases ~f:(fun input ->
     let expected = build_positions_simple input in

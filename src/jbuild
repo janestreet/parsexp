@@ -16,7 +16,8 @@
 (rule
  ((targets (parser_automaton.ml))
   (deps (gen/gen_parser_automaton.exe))
-  (action (bash "./${<} > ${@}"))))
+  (action (bash "./${<} > ${@}"))
+  (fallback)))
 
 
 (jbuild_version 1)

@@ -436,7 +436,8 @@ let opening : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
   state.depth <- state.depth + 1;
   match state.kind with
   | Positions ->
-    add_pos state ~delta:0;
+    if state.ignoring = 0 then
+      add_pos state ~delta:0;
     stack
   | Sexp ->
     if state.ignoring = 0 then
@@ -444,10 +445,10 @@ let opening : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
     else
       stack
   | Sexp_with_positions ->
-    add_pos state ~delta:0;
-    if state.ignoring = 0 then
+    if state.ignoring = 0 then begin
+      add_pos state ~delta:0;
       Open stack
-    else
+    end else
       stack
   | Cst ->
     Open (current_pos state, stack)
@@ -535,7 +536,8 @@ let closing : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
         (* Note we store end positions as inclusive in [Positions.t], so we use [delta:0],
            while in the [Cst] case we save directly the final ranges, so we use
            [delta:1]. *)
-        add_pos state ~delta:0;
+        if state.ignoring = 0 then
+          add_pos state ~delta:0;
         stack
       | Sexp ->
         if state.ignoring = 0 then
@@ -543,10 +545,10 @@ let closing : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
         else
           stack
       | Sexp_with_positions ->
-        add_pos state ~delta:0;
-        if state.ignoring = 0 then
+        if state.ignoring = 0 then begin
+          add_pos state ~delta:0;
           make_list [] stack
-        else
+        end else
           stack
       | Cst ->
         make_list_cst (current_pos state ~delta:1) [] stack
