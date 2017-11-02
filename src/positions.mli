@@ -27,6 +27,8 @@ type pos =
 
 val beginning_of_file : pos
 
+val shift_pos : pos -> cols:int -> pos
+
 (** Range of positions, as reported in error messages. We follow the lexing conventions of
     OCaml, i.e. [start_pos] points to the first character and [end_pos] points to the
     position just after the last character.

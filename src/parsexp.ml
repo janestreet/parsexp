@@ -12,14 +12,31 @@ let rec feed_substring_unsafe str state stack i stop =
   else
     stack
 
+let rec feed_subbytes_unsafe str state stack i stop =
+  if i < stop then
+    let c = Bytes.unsafe_get str i in
+    let stack = A.feed state c stack in
+    feed_subbytes_unsafe str state stack (i + 1) stop
+  else
+    stack
+
 let feed_substring state str ~pos ~len stack =
   let str_len = String.length str in
   if pos < 0 || len < 0 || pos > str_len - len then
     invalid_arg "Parsexp.feed_substring";
   feed_substring_unsafe str state stack pos (pos + len)
 
+let feed_subbytes state str ~pos ~len stack =
+  let str_len = Bytes.length str in
+  if pos < 0 || len < 0 || pos > str_len - len then
+    invalid_arg "Parsexp.feed_subbytes";
+  feed_subbytes_unsafe str state stack pos (pos + len)
+
 let feed_string state str stack =
   feed_substring_unsafe str state stack 0 (String.length str)
+
+let feed_bytes state str stack =
+  feed_subbytes_unsafe str state stack 0 (Bytes.length str)
 
 module Parse_error = struct
   include A.Error
@@ -130,6 +147,8 @@ module Make(Params : sig
 
   let feed_substring = feed_substring
   let feed_string    = feed_string
+  let feed_subbytes = feed_subbytes
+  let feed_bytes    = feed_bytes
 
   let parse_string_exn str =
     let state = State.create () in
@@ -139,6 +158,7 @@ module Make(Params : sig
     match parse_string_exn str with
     | x                         -> Ok x
     | exception (Parse_error e) -> Error e
+
 end
 
 module Make_eager(Params : sig
@@ -195,6 +215,8 @@ module Make_eager(Params : sig
 
   let feed_substring = feed_substring
   let feed_string    = feed_string
+  let feed_subbytes  = feed_subbytes
+  let feed_bytes     = feed_bytes
 
   module Lexbuf_consumer = struct
     type t = State.t
@@ -226,7 +248,7 @@ module Make_eager(Params : sig
 
     let rec feed_lexbuf t (lexbuf : Lexing.lexbuf) stack =
       let stack =
-        feed_substring t lexbuf.lex_buffer stack
+        feed_subbytes t lexbuf.lex_buffer stack
           ~pos:lexbuf.lex_curr_pos
           ~len:(lexbuf.lex_buffer_len - lexbuf.lex_curr_pos)
       in

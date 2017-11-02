@@ -102,16 +102,16 @@ module Chunk : sig
   val get16 : t -> pos:int -> int
   val set16 : t -> pos:int -> int -> unit
 end = struct
-  type t = string
+  type t = bytes
 
   (* OCaml strings always waste two bytes at the end, so we take a power of two minus two
      to be sure we don't waste space. *)
   let length = 62
 
-  let alloc () = String.create length
+  let alloc () = Bytes.create length
 
-  external get16 : string -> pos:int -> int = "%caml_string_get16"
-  external set16 : string -> pos:int -> int -> unit = "%caml_string_set16"
+  external get16 : bytes -> pos:int -> int = "%caml_string_get16"
+  external set16 : bytes -> pos:int -> int -> unit = "%caml_string_set16"
 
   (* If we want to make a [Positions.t] serializable:
 

@@ -58,7 +58,8 @@ module type Parser = sig
 
   val feed_string : State.t -> string -> Stack.t -> Stack.t
   val feed_substring : State.t -> string -> pos:int -> len:int -> Stack.t -> Stack.t
-
+  val feed_bytes : State.t -> bytes -> Stack.t -> Stack.t
+  val feed_subbytes : State.t -> bytes -> pos:int -> len:int -> Stack.t -> Stack.t
 
   (** {3 High-level functions} *)
 
@@ -144,6 +145,8 @@ module type Eager_parser = sig
   val feed_eoi : State.t -> Stack.t -> unit
   val feed_string : State.t -> string -> Stack.t -> Stack.t
   val feed_substring : State.t -> string -> pos:int -> len:int -> Stack.t -> Stack.t
+  val feed_bytes : State.t -> bytes -> Stack.t -> Stack.t
+  val feed_subbytes : State.t -> bytes -> pos:int -> len:int -> Stack.t -> Stack.t
 
   module Lexbuf_consumer : sig
     type t
