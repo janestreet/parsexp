@@ -1,6 +1,7 @@
 (library
  ((name parsexp)
   (public_name parsexp)
+  (flags (:standard -unsafe-string))
   (libraries (base))
   ;; parsexp is one the libraries for which we are careful about
   ;; dependencies, you can add ppx rewriters but only when you need
