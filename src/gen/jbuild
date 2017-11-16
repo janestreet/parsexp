@@ -1,5 +1,6 @@
 (executables
  ((names (gen_parser_automaton))
+  (flags (:standard -safe-string))
   (libraries (base stdio gen_parsexp_lib))
   (preprocess (pps (-no-optcomp
                       ppx_js_style -check-doc-comments
