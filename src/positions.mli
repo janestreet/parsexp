@@ -14,7 +14,7 @@ open! Base
     Note that a [t] can hold the same given positions no more than twice. The parser
     stores the same position twice for non-quoted single character atoms.
 *)
-type t
+type t [@@deriving sexp_of, compare]
 
 (** Represent a position in the input *)
 type pos =

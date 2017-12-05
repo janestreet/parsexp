@@ -505,3 +505,6 @@ let to_list t =
 ;;
 
 let to_array t = to_list t |> Array.of_list
+
+let sexp_of_t t = [%sexp_of: pos array] (to_array t)
+let compare t1 t2 = [%compare: pos array] (to_array t1) (to_array t2)

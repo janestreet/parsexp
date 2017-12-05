@@ -119,81 +119,6 @@ let cases_where_sexplib_disagree_with_itself =
   ref []
 let add_to_list cell x = cell := x :: !cell
 
-module Sexplib = struct
-  module Sexp = struct
-    include Sexplib.Sexp
-
-    let dummy_parse_error () =
-      (* a hack to raise an arbitrary Parse_error *)
-      let _ = Sexplib.Sexp.of_string ")" in
-      assert false
-
-    (* this is a "fixed" version of Sexp.of_string that tolerates trailing whitespace and
-       comments, taken from jane/sexp-allow-trailing-whitespace feature, additionally
-       hacked up to raise Parse_errors on incomplete sexps where it raised [Failure]s
-       before *)
-    let of_string str =
-      (* [ws_buf] must contain a single space character *)
-      let feed_end_of_input ~this_parse ~ws_buf =
-        (* When parsing atoms, the incremental parser cannot tell whether it is at the end
-           until it hits whitespace.  We therefore feed it one space to determine whether
-           it is finished. *)
-        match this_parse ~pos:0 ~len:1 ws_buf with
-        | Sexplib.Sexp.Done (sexp, _) -> Ok sexp
-        | Cont (cont_state, _) -> Error cont_state
-      in
-      let of_string_bigstring this_parse ws_buf str =
-        match this_parse str ~parse_pos:None with
-        | Sexplib.Sexp.Done (sexp, parse_pos) ->
-          begin
-            match this_parse str ~parse_pos:(Some parse_pos) with
-            | Done (_sexp2, _) ->
-              failwith "bad"
-            | Cont (Sexplib.Sexp.Cont_state.Parsing_toplevel_whitespace, _) ->
-              sexp
-            | Cont (_, _) ->
-              failwith "bad"
-          end
-        | Cont (_, this_parse) ->
-          match feed_end_of_input ~this_parse ~ws_buf with
-          | Ok sexp -> sexp
-          | Error _cont_state ->
-            dummy_parse_error ()
-      in
-      of_string_bigstring
-        (fun x ~parse_pos -> Sexplib.Sexp.parse ?parse_pos x) " " str
-
-    (* copy of the above, additionally hacked up to support multiple sexps *)
-    let sexps_of_string str =
-      (* [ws_buf] must contain a single space character *)
-      let feed_end_of_input ~this_parse ~ws_buf =
-        (* When parsing atoms, the incremental parser cannot tell whether
-           it is at the end until it hits whitespace.  We therefore feed it
-           one space to determine whether it is finished. *)
-        match this_parse ~pos:0 ~len:1 ws_buf with
-        | Sexplib.Sexp.Done (sexp, _) -> Ok sexp
-        | Cont (cont_state, _) -> Error cont_state
-      in
-      let of_string_bigstring this_parse ws_buf str =
-        let rec loop parse_pos =
-          match this_parse str ~parse_pos with
-          | Sexplib.Sexp.Done (sexp, parse_pos) ->
-            sexp :: loop (Some parse_pos)
-          | Cont (_, this_parse) ->
-            match feed_end_of_input ~this_parse ~ws_buf with
-            | Ok sexp -> [sexp]
-            | Error (Sexplib.Sexp.Cont_state.Parsing_toplevel_whitespace) ->
-              []
-            | Error _ ->
-              dummy_parse_error ()
-        in
-        loop None
-      in
-      of_string_bigstring
-        (fun x ~parse_pos -> Sexplib.Sexp.parse ?parse_pos x) " " str
-  end
-end
-
 let test_one_case_dealing_with_a_single_sexp (str, expected) =
   let parsexp =
     match parse_string str with
@@ -241,8 +166,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
     match Sexplib.Sexp.scan_sexps (Lexing.from_string str) with
     | [sexp] -> Ok sexp
     | exception exn -> Error exn
-    | [] | _ :: _ :: _ ->
-      Sexplib.Sexp.dummy_parse_error ()
+    | [] | _ :: _ :: _ -> dummy_sexplib_error ()
   in
   let matches =
     match sexplib, sexplib_lexer with
@@ -278,7 +202,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
       Sexp.pp_hum [%sexp (parsexp : (Sexp.t list, A.Error.t) Result.t)];
 
   let sexplib =
-    match Sexplib.Sexp.sexps_of_string str with
+    match sexplib_sexps_of_string str with
     | sexps -> Ok sexps
     | exception ((Sexplib.Sexp.Parse_error _) as exn) -> Error exn
   in

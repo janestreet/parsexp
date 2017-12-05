@@ -341,7 +341,7 @@ let add_quoted_atom_char state c stack =
 
 let check_new_sexp_allowed state =
   let is_single = match state.mode with Single -> true | _ -> false in
-  if is_single && state.full_sexps > 0 then
+  if is_single && state.full_sexps > 0 && state.ignoring = 0 then
     Error.raise state ~at_eof:false Too_many_sexps
 
 let add_pos state ~delta =
@@ -467,35 +467,42 @@ let reset_positions : type u s. (u, s) state -> unit = fun state ->
   | Sexp                -> ()
   | Cst    -> ()
 
-let sexp_added state stack ~delta =
-  let stack =
-    if state.ignoring lor state.depth <> 0 then
-      stack
-    else begin
-      state.full_sexps <- state.full_sexps + 1;
-      match state.mode with
-      | Single | Many -> stack
-      | Eager { got_sexp = f; _ } ->
-        (* Modify the offset so that [f] get a state pointing to the end of the current
-           s-expression *)
-        let saved_offset = state.offset in
-        state.offset <- state.offset + delta;
-        let saved_full_sexps = state.full_sexps in
-        match f state stack with
-        | exception e -> set_error_state state; raise e
-        | stack ->
-          (* This assert is not a full protection against the user mutating the state but
-             it should catch most cases. *)
-          assert (state.offset = saved_offset + delta &&
-                  state.full_sexps = saved_full_sexps);
-          state.offset <- saved_offset;
-          reset_positions state;
-          stack
-    end
-  in
-  if state.ignoring <> 0 && state.ignoring_depth = state.depth then
+let sexp_or_comment_added ~is_comment state stack ~delta =
+  if state.ignoring lor state.depth <> 0 then
+    stack
+  else begin
+    if not is_comment then state.full_sexps <- state.full_sexps + 1;
+    match state.mode with
+    | Single | Many -> stack
+    | Eager { got_sexp = f; _ } ->
+      (* Modify the offset so that [f] get a state pointing to the end of the current
+         s-expression *)
+      let saved_offset = state.offset in
+      state.offset <- state.offset + delta;
+      let saved_full_sexps = state.full_sexps in
+      match f state stack with
+      | exception e -> set_error_state state; raise e
+      | stack ->
+        (* This assert is not a full protection against the user mutating the state but
+           it should catch most cases. *)
+        assert (state.offset = saved_offset + delta &&
+                state.full_sexps = saved_full_sexps);
+        state.offset <- saved_offset;
+        reset_positions state;
+        stack
+  end
+
+let comment_added_assuming_cst state stack ~delta =
+  sexp_or_comment_added ~is_comment:true state stack ~delta
+
+let sexp_added : type u s. (u, s) state -> s -> delta:int -> s = fun state stack ~delta ->
+  let stack = sexp_or_comment_added ~is_comment:false state stack ~delta in
+  if state.ignoring <> 0 && state.ignoring_depth = state.depth then begin
     state.ignoring <- state.ignoring - 1;
-  stack
+    if state.ignoring = 0 && (match state.kind with Cst -> true | _ -> false)
+    then comment_added_assuming_cst state stack ~delta
+    else stack
+  end else stack
 
 let rec make_list acc : stack -> stack = function
   | Empty              -> assert false
@@ -690,7 +697,8 @@ let end_block_comment : type u s. (u, s) state -> char -> s -> s = fun state cha
                       ; comment = s
                       }
       in
-      add_comment_to_stack_cst comment stack
+      let stack = add_comment_to_stack_cst comment stack in
+      comment_added_assuming_cst state stack ~delta:1
     end else
       stack
 
@@ -716,7 +724,8 @@ let end_line_comment : type u s. (u, s) epsilon_action = fun state stack ->
                     ; comment = s
                     }
     in
-    add_comment_to_stack_cst comment stack
+    let stack = add_comment_to_stack_cst comment stack in
+    comment_added_assuming_cst state stack ~delta:0
 
 let eps_eoi_check : type u s. (u, s) epsilon_action = fun state stack ->
   if state.depth      > 0 then Error.raise state ~at_eof:true Unclosed_paren;

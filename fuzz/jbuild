@@ -1,0 +1,12 @@
+(executables
+ ((names (parser_equivalence))
+  (libraries
+   (aflPersistent
+    base
+    parsexp
+    parsexp_test
+    sexplib
+    stdio))
+  (preprocess (pps (ppx_jane ppx_driver.runner)))))
+
+(jbuild_version 1)

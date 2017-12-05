@@ -35,7 +35,7 @@ and comment =
       ; comments      : comment list
       ; sexp          : t
       }
-[@@deriving sexp_of]
+[@@deriving compare, sexp_of]
 
 module Forget : sig
   val t             : t                 -> Sexp.t

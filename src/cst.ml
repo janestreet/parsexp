@@ -25,7 +25,7 @@ and comment =
       ; comments      : comment list
       ; sexp          : t
       }
-[@@deriving sexp_of]
+[@@deriving compare, sexp_of]
 
 module Forget = struct
   (* In cps to prevent non-tail recursion.
