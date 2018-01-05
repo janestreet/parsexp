@@ -33,6 +33,9 @@ let don't_optimize_out x = ignore (Obj.tag (Obj.repr x) : int)
 let%bench "sexplib" =
   don't_optimize_out (Sexplib.Sexp.of_string data : Sexp.t)
 
+let%bench "sexplib.annotated" =
+  don't_optimize_out (Sexplib.Sexp.Annotated.of_string data : Sexp.Annotated.t)
+
 let%bench "parsexp" =
   don't_optimize_out (Parsexp.Single.parse_string_exn data : Sexp.t)
 

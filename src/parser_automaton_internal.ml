@@ -41,12 +41,9 @@ module Public = struct
     ; mutable depth          : int
     ; (* Number of opened #| when parsing a block comment *)
       mutable block_comment_depth  : int
-    ; (* Number of full sexp to ignore. This correspond to the number of consecutive #;.
-         We don't have to track nested #; because they do not change the result. *)
-      mutable ignoring       : int
-    ; (* Only meaningful when [ignoring] > 0. Number of opened parentheses of the
-         outermost sexp comment. *)
-      mutable ignoring_depth : int
+    ; (* Stack of ignoring depths; the current depth is pushed
+         each time a #; comment is entered. *)
+      mutable ignoring_stack : int list
     ; (* When parsing an escape sequence of the form "\\NNN" or "\\XX", this accumulates
          the computed number *)
       mutable escaped_value  : int
@@ -93,8 +90,7 @@ module Public = struct
     ; depth          = 0
     ; automaton_state = initial_state
     ; block_comment_depth  = 0
-    ; ignoring       = 0
-    ; ignoring_depth = 0
+    ; ignoring_stack = []
     ; escaped_value  = 0
     ; atom_buffer    = Buffer.create 128
     ; user_state     = initial_user_state kind initial_pos
@@ -134,8 +130,7 @@ module Public = struct
       ~depth:               0
       ~automaton_state:     initial_state
       ~block_comment_depth: 0
-      ~ignoring:            0
-      ~ignoring_depth:      0
+      ~ignoring_stack:      []
       ~escaped_value:       0
       ~full_sexps:          0
       ~offset:              pos.offset
@@ -146,8 +141,16 @@ module Public = struct
 
   type context = Sexp_comment | Sexp
 
+  let is_ignoring state =
+    match state.ignoring_stack with
+    | _ :: _ -> true
+    | [] -> false
+
+  let is_not_ignoring state =
+    not (is_ignoring state)
+
   let context state =
-    if state.ignoring = 0 then
+    if is_not_ignoring state then
       Sexp
     else
       Sexp_comment
@@ -341,7 +344,7 @@ let add_quoted_atom_char state c stack =
 
 let check_new_sexp_allowed state =
   let is_single = match state.mode with Single -> true | _ -> false in
-  if is_single && state.full_sexps > 0 && state.ignoring = 0 then
+  if is_single && state.full_sexps > 0 && is_not_ignoring state then
     Error.raise state ~at_eof:false Too_many_sexps
 
 let add_pos state ~delta =
@@ -366,11 +369,11 @@ let start_quoted_string : type u s. (u, s) action = fun state _char stack ->
   check_new_sexp_allowed state;
   match state.kind with
   | Positions ->
-    if state.ignoring = 0 then
+    if is_not_ignoring state then
       add_pos state ~delta:0;
     stack
   | Sexp_with_positions ->
-    if state.ignoring = 0 then
+    if is_not_ignoring state then
       add_pos state ~delta:0;
     stack
   | Cst ->
@@ -436,16 +439,16 @@ let opening : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
   state.depth <- state.depth + 1;
   match state.kind with
   | Positions ->
-    if state.ignoring = 0 then
+    if is_not_ignoring state then
       add_pos state ~delta:0;
     stack
   | Sexp ->
-    if state.ignoring = 0 then
+    if is_not_ignoring state then
       Open stack
     else
       stack
   | Sexp_with_positions ->
-    if state.ignoring = 0 then begin
+    if is_not_ignoring state then begin
       add_pos state ~delta:0;
       Open stack
     end else
@@ -467,42 +470,60 @@ let reset_positions : type u s. (u, s) state -> unit = fun state ->
   | Sexp                -> ()
   | Cst    -> ()
 
-let sexp_or_comment_added ~is_comment state stack ~delta =
-  if state.ignoring lor state.depth <> 0 then
-    stack
-  else begin
-    if not is_comment then state.full_sexps <- state.full_sexps + 1;
-    match state.mode with
-    | Single | Many -> stack
-    | Eager { got_sexp = f; _ } ->
-      (* Modify the offset so that [f] get a state pointing to the end of the current
-         s-expression *)
-      let saved_offset = state.offset in
-      state.offset <- state.offset + delta;
-      let saved_full_sexps = state.full_sexps in
-      match f state stack with
-      | exception e -> set_error_state state; raise e
-      | stack ->
-        (* This assert is not a full protection against the user mutating the state but
-           it should catch most cases. *)
-        assert (state.offset = saved_offset + delta &&
-                state.full_sexps = saved_full_sexps);
-        state.offset <- saved_offset;
-        reset_positions state;
-        stack
-  end
+let toplevel_sexp_or_comment_added state stack ~delta =
+  match state.mode with
+  | Single | Many -> stack
+  | Eager { got_sexp = f; _ } ->
+    (* Modify the offset so that [f] get a state pointing to the end of the current
+       s-expression *)
+    let saved_offset = state.offset in
+    state.offset <- state.offset + delta;
+    let saved_full_sexps = state.full_sexps in
+    match f state stack with
+    | exception e -> set_error_state state; raise e
+    | stack ->
+      (* This assert is not a full protection against the user mutating the state but
+         it should catch most cases. *)
+      assert (state.offset = saved_offset + delta &&
+              state.full_sexps = saved_full_sexps);
+      state.offset <- saved_offset;
+      reset_positions state;
+      stack
+
+let is_top_level state =
+  is_not_ignoring state && state.depth = 0
 
 let comment_added_assuming_cst state stack ~delta =
-  sexp_or_comment_added ~is_comment:true state stack ~delta
+  if is_top_level state then
+    toplevel_sexp_or_comment_added state stack ~delta
+  else
+    stack
 
-let sexp_added : type u s. (u, s) state -> s -> delta:int -> s = fun state stack ~delta ->
-  let stack = sexp_or_comment_added ~is_comment:false state stack ~delta in
-  if state.ignoring <> 0 && state.ignoring_depth = state.depth then begin
-    state.ignoring <- state.ignoring - 1;
-    if state.ignoring = 0 && (match state.kind with Cst -> true | _ -> false)
-    then comment_added_assuming_cst state stack ~delta
-    else stack
-  end else stack
+let maybe_pop_ignoring_stack state =
+  match state.ignoring_stack with
+  | inner_comment_depth :: _tl when inner_comment_depth > state.depth ->
+    Error.raise state ~at_eof:false Sexp_comment_without_sexp;
+  | inner_comment_depth :: tl when inner_comment_depth = state.depth ->
+    state.ignoring_stack <- tl;
+    true
+  | _ ->
+    false
+
+let sexp_added : type u s. (u, s) state -> s -> delta:int -> s =
+  fun state stack ~delta ->
+    let is_comment = maybe_pop_ignoring_stack state in
+    if is_top_level state
+    then
+      begin
+        if not is_comment then
+          state.full_sexps <- state.full_sexps + 1;
+        if not is_comment || (match state.kind with Cst -> true | _ -> false) then
+          toplevel_sexp_or_comment_added state stack ~delta
+        else
+          stack
+      end
+    else
+      stack
 
 let rec make_list acc : stack -> stack = function
   | Empty              -> assert false
@@ -543,16 +564,16 @@ let closing : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
         (* Note we store end positions as inclusive in [Positions.t], so we use [delta:0],
            while in the [Cst] case we save directly the final ranges, so we use
            [delta:1]. *)
-        if state.ignoring = 0 then
+        if is_not_ignoring state then
           add_pos state ~delta:0;
         stack
       | Sexp ->
-        if state.ignoring = 0 then
+        if is_not_ignoring state then
           make_list [] stack
         else
           stack
       | Sexp_with_positions ->
-        if state.ignoring = 0 then begin
+        if is_not_ignoring state then begin
           add_pos state ~delta:0;
           make_list [] stack
         end else
@@ -560,11 +581,10 @@ let closing : type u s. (u, s) state -> char -> s -> s = fun state _char stack -
       | Cst ->
         make_list_cst (current_pos state ~delta:1) [] stack
     in
-    if state.ignoring <> 0 && state.ignoring_depth = state.depth then
-      Error.raise state ~at_eof:false Sexp_comment_without_sexp;
     state.depth <- state.depth - 1;
     sexp_added state stack ~delta:1
-  end else
+  end
+  else
     Error.raise state ~at_eof:false Closed_paren_without_opened
 
 let make_loc ?(delta=0) state : Positions.range =
@@ -589,16 +609,16 @@ let eps_push_atom : type u s. (u, s) epsilon_action = fun state stack ->
   let stack =
     match state.kind with
     | Positions ->
-      if state.ignoring = 0 then
+      if is_not_ignoring state then
         add_non_quoted_atom_pos state ~atom:str;
       stack
     | Sexp ->
-      if state.ignoring = 0 then
+      if is_not_ignoring state then
         Sexp (Atom str, stack)
       else
         stack
     | Sexp_with_positions ->
-      if state.ignoring = 0 then begin
+      if is_not_ignoring state then begin
         add_non_quoted_atom_pos state ~atom:str;
         Sexp (Atom str, stack)
       end else
@@ -625,16 +645,16 @@ let push_quoted_atom : type u s. (u, s) action = fun state _char stack ->
   let stack =
     match state.kind with
     | Positions ->
-      if state.ignoring = 0 then
+      if is_not_ignoring state then
         add_pos state ~delta:0;
       stack
     | Sexp ->
-      if state.ignoring = 0 then
+      if is_not_ignoring state then
         Sexp (Atom str, stack)
       else
         stack
     | Sexp_with_positions ->
-      if state.ignoring = 0 then begin
+      if is_not_ignoring state then begin
         add_pos state ~delta:0;
         Sexp (Atom str, stack)
       end else
@@ -655,10 +675,7 @@ let push_quoted_atom : type u s. (u, s) action = fun state _char stack ->
   sexp_added state stack ~delta:1
 
 let start_sexp_comment : type u s. (u, s) action = fun state _char stack ->
-  if state.ignoring = 0 || state.ignoring_depth = state.depth then begin
-    state.ignoring <- state.ignoring + 1;
-    state.ignoring_depth <- state.depth
-  end;
+  state.ignoring_stack <- state.depth :: state.ignoring_stack;
   match state.kind with
   | Cst ->
     In_sexp_comment { hash_semi_pos = current_pos state ~delta:(-1)
@@ -728,8 +745,8 @@ let end_line_comment : type u s. (u, s) epsilon_action = fun state stack ->
     comment_added_assuming_cst state stack ~delta:0
 
 let eps_eoi_check : type u s. (u, s) epsilon_action = fun state stack ->
-  if state.depth      > 0 then Error.raise state ~at_eof:true Unclosed_paren;
-  if state.ignoring   > 0 then Error.raise state ~at_eof:true Sexp_comment_without_sexp;
+  if state.depth > 0   then Error.raise state ~at_eof:true Unclosed_paren;
+  if is_ignoring state then Error.raise state ~at_eof:true Sexp_comment_without_sexp;
   if state.full_sexps = 0 then (
     match state.mode with
     | Many

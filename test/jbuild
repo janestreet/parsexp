@@ -7,7 +7,6 @@
               stdio
               parsexp
               gen_parsexp_lib
-              sexplib
               expect_test_helpers_kernel))
   (preprocess (pps (ppx_jane ppx_driver.runner)))
 ))

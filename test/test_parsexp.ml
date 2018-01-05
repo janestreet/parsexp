@@ -38,6 +38,30 @@ let%expect_test "parsexp bug: it accepts invalid syntax" =
         (offset 3)))
       (message "unterminated sexp comment"))) |}];
   test "#;(#;) a";
+  [%expect {|
+    (Error (
+      (position (
+        (line   1)
+        (col    5)
+        (offset 5)))
+      (message "unterminated sexp comment"))) |}];
+  test "#;";
+  [%expect {|
+    (Error (
+      (position (
+        (line   1)
+        (col    2)
+        (offset 2)))
+      (message "unterminated sexp comment"))) |}];
+  test "#;(#;q) (a)";
+  [%expect {| (Ok (a)) |}];
+  test "#;(#;(q)) (a)";
+  [%expect {| (Ok (a)) |}];
+  test "#;(#;(q)) a";
+  [%expect {| (Ok a) |}];
+  test "#;(#;((q))) a";
+  [%expect {| (Ok a) |}];
+  test "#;#;(#;x)y a";
   [%expect {| (Ok a) |}];
 ;;
 
