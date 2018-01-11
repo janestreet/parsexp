@@ -206,6 +206,9 @@ module Make_eager(Params : sig
     let reset  = A.reset
 
     let stop t = A.set_error_state t
+
+    let old_parser_cont_state t =
+      Parser_automaton.old_parser_cont_state t
   end
 
   let feed = A.feed

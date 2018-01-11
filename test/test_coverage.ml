@@ -160,7 +160,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
                         @."
       str
       Sexp.pp_hum [%sexp (parsexp : (Sexp.t, A.Error.t) Result.t)]
-      Sexp.pp_hum [%sexp (sexplib : (Sexp.t, exn      ) Result.t)];
+       Sexp.pp_hum [%sexp (sexplib : (Sexp.t, exn      ) Result.t)];
 
   let sexplib_lexer =
     match Sexplib.Sexp.scan_sexps (Lexing.from_string str) with

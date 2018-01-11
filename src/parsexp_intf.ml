@@ -137,6 +137,10 @@ module type Eager_parser = sig
       -> ?no_sexp_is_error:bool (** default: false *)
       -> (Read_only.t -> parsed_value -> unit)
       -> t
+
+    (**/**)
+    val old_parser_cont_state : t -> Parser_automaton_internal.Public.Old_parser_cont_state.t
+    (**/**)
   end
 
   module Stack : Parser_stack

@@ -283,8 +283,11 @@ module Error = struct
       in
       let old_parser_exn =
         match reason, at_eof with
-        | (Too_many_sexps | Comment_token_in_unquoted_atom), _
+        | Too_many_sexps, _
         | _, true -> `Failure
+        | Comment_token_in_unquoted_atom, _
+          when String.equal (Buffer.contents state.atom_buffer) "|" ->
+          `Failure
         | _ -> `Parse_error
       in
       let position : Positions.pos =

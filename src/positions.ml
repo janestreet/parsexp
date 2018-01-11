@@ -308,7 +308,7 @@ module Iterator : sig
 
   (* [advance t ~skip] ignores [skip] saved positions and returns the next saved position.
      Raises [No_more] when reaching the end of the position set. *)
-  val advance : t -> skip:int -> pos
+  val advance_exn : t -> skip:int -> pos
 
 end = struct
   type t =
@@ -427,7 +427,7 @@ end = struct
             end else
               advance t ~skip:(skip - 2) ~offset_shift:0 ~offset_shift_num_bits:0
 
-  let advance t ~skip =
+  let advance_exn t ~skip =
     match t.pending with
     | Some pos ->
       t.pending <- None;
@@ -443,8 +443,8 @@ let find t a b =
   if a < 0 || b <= a then invalid_arg "Parsexp.Positions.find";
   let iter = Iterator.create t in
   try
-    let start_pos = Iterator.advance iter ~skip:a           in
-    let last_pos  = Iterator.advance iter ~skip:(b - a - 1) in
+    let start_pos = Iterator.advance_exn iter ~skip:a           in
+    let last_pos  = Iterator.advance_exn iter ~skip:(b - a - 1) in
     make_range_incl ~start_pos ~last_pos
   with Iterator.No_more ->
     failwith "Parsexp.Position.find"
@@ -497,7 +497,7 @@ let find_sub_sexp_in_list_phys = Sexp_search.find_sub_sexp_in_list_phys
 let to_list t =
   let iter = Iterator.create t in
   let rec loop acc =
-    match Iterator.advance iter ~skip:0 with
+    match Iterator.advance_exn iter ~skip:0 with
     | exception Iterator.No_more -> List.rev acc
     | pos -> loop (pos :: acc)
   in

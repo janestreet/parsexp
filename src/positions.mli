@@ -91,3 +91,20 @@ val find_sub_sexp_in_list_phys : t -> Sexp.t list -> sub:Sexp.t -> range option
 
 (** Returns how much memory is used by [t] *)
 val memory_footprint_in_bytes : t -> int
+
+(** API for iterating over positions in an efficient way *)
+module Iterator : sig
+  type positions = t
+
+  type t
+
+  val create : positions -> t
+
+  (** Exception raised when the iterator has reached the end of the sequence. *)
+  exception No_more
+
+  (** [advance t ~skip] skips the next [skip] positions in the sequence, advance to the
+      next position and return it.
+      Raises [No_more] when reaching the end of the position set. *)
+  val advance_exn : t -> skip:int -> pos
+end with type positions := t

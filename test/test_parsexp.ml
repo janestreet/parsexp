@@ -303,6 +303,125 @@ let%expect_test "eager parser raise" =
     got: (1 (2 3)) |}]
 ;;
 
+let all_short_strings () =
+  let all_chars =
+    (* should have an example from every character class
+       (see [Char_class] in test_coverage.ml) *)
+    [
+      '\000';
+      '\001';
+      '\t';
+      ' ';
+      '\n';
+      '\012';
+      '\r';
+      '"';
+      '#';
+      '(';
+      ')';
+      '8';
+      ';';
+      'A';
+      'b';
+      '\\';
+      'x';
+      '|';
+    ]
+  in
+  List.bind [0;1;2;3;4;]
+    ~f:(fun len ->
+      List.all (List.init len ~f:(fun _ -> all_chars))
+    )
+  |> List.map ~f:(String.of_char_list)
+
+(*
+   A thorough test of [Eager] semantics expressed in terms of [Many].
+
+   - feed chars one by one,
+   - note when sexps are detected,
+   - assert that the position reported is how many chars we fed or 1 fewer
+   - assert that the resulting chunks if we split at those positions can be parsed
+   to the same sexps as the sexps being reported
+   - assert that the whole thing parses iff it parses with [Many]
+*)
+let%expect_test "eager parser semantics" =
+  let exception Got_sexp of { offset : int; sexp : Sexp.t } in
+  let got_sexp state sexp =
+    Exn.raise_without_backtrace (Got_sexp {
+      sexp;
+      offset = P.State.Read_only.offset state; })
+  in
+  let inputs = (all_short_strings ()) in
+  printf "testing %d inputs\n" (List.length inputs);
+  List.iter inputs ~f:(fun input ->
+    let rec go start state stack i =
+      if Int.(=) i (String.length input)
+      then
+        (match P.feed_eoi state stack with
+         | exception Got_sexp { offset; sexp; } ->
+           let ate = P.State.offset state in
+           assert (Int.(=) offset ate);
+           let fed = i - start in
+           assert (List.mem [fed] ~equal:Int.(=) ate);
+           (match Single.parse_string (String.sub ~pos:start ~len:ate input) with
+            | Error _ -> assert false
+            | Ok sexp2 ->
+              assert (Sexp.(=) sexp sexp2);
+              Ok ())
+         | exception exn ->
+           Error (i, exn)
+         | () ->
+           match Many.parse_string (String.sub ~pos:start ~len:(i - start) input) with
+           | Ok [] -> Ok ()
+           | Ok (_ :: _) -> failwith "lost a sexp"
+           | Error error ->
+             raise_s [%message
+               "succeeded with Eager, but failed with Many"
+                 ~pos:(start : int)
+                 ~len:(i - start : int)
+                 (error : Parse_error.t)
+             ])
+      else
+        match P.feed state (String.get input i) stack with
+        | exception Got_sexp { sexp; offset; } ->
+          let ate = P.State.offset state in
+          assert (Int.(=) offset ate);
+          let fed = i + 1 - start in
+          assert (List.mem [fed; fed - 1] ~equal:Int.(=) ate);
+          let end_ = start + ate in
+          (match Single.parse_string (String.sub ~pos:start ~len:ate input) with
+           | Error _ ->
+             raise_s [%message
+               "Eager gave us a sexp that won't parse"
+                 (start : int)
+                 (i : int)
+             ]
+           | Ok sexp2 ->
+             assert (Sexp.(=) sexp sexp2);
+             let state = P.State.create got_sexp in
+             go end_ state P.Stack.empty end_)
+        | exception exn -> Error (i, exn)
+        | stack ->
+          go start state stack (i + 1)
+    in
+    let state = P.State.create got_sexp in
+    match go 0 state P.Stack.empty 0 with
+    | Ok () -> ()
+    | Error exn -> (match Many.parse_string input with
+      | Ok result_from_many ->
+        print_s [%message
+          "failed to parse with Eager, but succeeded with Many"
+            (input : string)
+            (exn : int * Exn.t)
+            (result_from_many : Sexp.t list)
+        ]
+      | Error _bad -> ())
+    | exception bad_thing ->
+      print_s [%message "Bad" (input : string) (bad_thing : Exn.t)]
+  );
+  [%expect {| testing 111151 inputs |}]
+;;
+
 let%expect_test "eager parser continue" =
   let stream = Stream.of_string input in
   iter_sexps stream ~f:(Caml.Format.printf "got: %a@." Sexp.pp_hum);
@@ -319,10 +438,10 @@ let%expect_test "eager parser incorrect mutation" =
   let state = ref (P.State.create (fun _ _ -> assert false)) in
   let got_sexp _state _sexp = P.State.reset !state in
   state := P.State.create got_sexp;
-  show_raise (fun () ->
+  show_raise ~hide_positions:true (fun () ->
     hot_loop !state stream P.Stack.empty);
   [%expect {|
-    (raised "Assert_failure parser_automaton_internal.ml:*:*") (glob)
+    (raised "Assert_failure parser_automaton_internal.ml:LINE:COL")
   |}]
 ;;
 

@@ -89,13 +89,10 @@ let%expect_test _ =
     same
     (Cont Parsing_atom)
   |}];
-  (* This is pretty weird, but is more of a bug in sexplib, and it's probably not worth
-     fixing *)
   test_cont_state "#| toto";
   [%expect {|
-    FAILURE
-    (sexplib (Cont Parsing_nested_whitespace))
-    (parsexp (Cont Parsing_block_comment))
+    same
+    (Cont Parsing_block_comment)
   |}];
   test_cont_state "#| \"bla";
   [%expect {|
