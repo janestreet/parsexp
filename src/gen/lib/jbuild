@@ -2,7 +2,7 @@
  ((name gen_parsexp_lib)
   (flags (:standard -safe-string))
   (libraries (base))
-  (preprocess (pps (-no-optcomp
+  (preprocess (pps (
                     ppx_js_style -check-doc-comments
                     ppx_sexp_conv
                     ppx_compare
