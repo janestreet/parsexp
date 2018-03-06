@@ -13,8 +13,8 @@
    - bit 0 represents a saved position followed by an offset increment
    - bits 10 represent an offset increment
    - bits 110 are followed by 5 bits of payload. The 5-bit payloads of any subsequent 110-
-   instructions are squashed to form a number (least significant 5-bit chunk first).
-   This number + 5 represents an offset increment
+     instructions are squashed to form a number (least significant 5-bit chunk first).
+     This number + 5 represents an offset increment
    - bits 1110 marks the beginning of a new line (with offset incremented)
    - bits 1111 represent a position saved twice followed by an offset increment
 
@@ -47,6 +47,7 @@
    - 0         save position and advance 1: end of "foo\n  bar"
    - 1110      newline
    - 0         save position and advance 1: last ')'
+
    (we save the position after the closing parenthesis)
 
    The total sequence is 42 bits, so we need 6 bytes to store it

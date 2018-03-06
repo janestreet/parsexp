@@ -3,7 +3,7 @@
    It is used in two places:
 
    - to define the automaton. At runtime, we only use integer for states and a table of
-   functions for transitions
+     functions for transitions
 
    - for tests
 *)
