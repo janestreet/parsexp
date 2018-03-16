@@ -1,6 +1,7 @@
 (** Compact set of positions *)
 
-open! Base
+open Import
+open Ppx_sexp_conv_lib
 
 (** A [t] value represent a sequence of positions. The focus is on small memory footprint.
 
@@ -14,7 +15,14 @@ open! Base
     Note that a [t] can hold the same given positions no more than twice. The parser
     stores the same position twice for non-quoted single character atoms.
 *)
-type t [@@deriving sexp_of, compare]
+type t [@@deriving_inline sexp_of, compare]
+include
+sig
+  [@@@ocaml.warning "-32"]
+  val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+  val compare : t -> t -> int
+end
+[@@@end]
 
 (** Represent a position in the input *)
 type pos =
@@ -23,7 +31,14 @@ type pos =
   ; offset : int (** Number of bytes from the beginning of the input. The first
                      byte has offset [0]. *)
   }
-[@@deriving sexp_of, compare]
+[@@deriving_inline sexp_of, compare]
+include
+sig
+  [@@@ocaml.warning "-32"]
+  val sexp_of_pos : pos -> Ppx_sexp_conv_lib.Sexp.t
+  val compare_pos : pos -> pos -> int
+end
+[@@@end]
 
 val beginning_of_file : pos
 
@@ -36,7 +51,14 @@ val shift_pos : pos -> cols:int -> pos
     This allow for instance to represent empty ranges with [start_pos = end_pos].
 *)
 type range = { start_pos : pos; end_pos : pos }
-[@@deriving sexp_of, compare]
+[@@deriving_inline sexp_of, compare]
+include
+sig
+  [@@@ocaml.warning "-32"]
+  val sexp_of_range : range -> Ppx_sexp_conv_lib.Sexp.t
+  val compare_range : range -> range -> int
+end
+[@@@end]
 
 (** Make a range from two positions where both positions are inclusive, i.e. [start_pos]
     points to the first character and [end_pos] points to the last one.

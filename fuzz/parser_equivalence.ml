@@ -267,13 +267,13 @@ let main ~nice_exn ~property =
 
 let nice_exn =
   match Caml.Sys.getenv "NICE_EXN" with
-  | exception Caml.Not_found -> false
+  | exception (Not_found_s _ | Caml.Not_found) -> false
   | (_ : string) -> true
     ;;
 
 let property =
   match Caml.Sys.getenv "PROP" with
-  | exception Caml.Not_found -> assert false
+  | exception (Not_found_s _ | Caml.Not_found) -> assert false
   | s -> Int.of_string s
 ;;
 

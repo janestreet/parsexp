@@ -1,6 +1,7 @@
 (** Parsing of s-expression *)
 
-open! Base
+open Import
+open Ppx_sexp_conv_lib
 
 module type Parser_state = sig
   (** State of the parser *)
@@ -65,7 +66,7 @@ module type Parser = sig
 
   module Error : sig type t end
 
-  val parse_string     : string -> (parsed_value, Error.t) Result.t
+  val parse_string     : string -> (parsed_value, Error.t) result
   val parse_string_exn : string -> parsed_value
 end
 
@@ -173,13 +174,13 @@ module type Conv = sig
   module Of_sexp_error : sig type t end
   module Conv_error    : sig type t end
 
-  val parse_string     : string -> (Sexp.t -> 'a) -> ('a single_or_many, Conv_error.t) Result.t
+  val parse_string     : string -> (Sexp.t -> 'a) -> ('a single_or_many, Conv_error.t) result
   val parse_string_exn : string -> (Sexp.t -> 'a) -> 'a single_or_many
 
   val conv
     :  Sexp.t single_or_many * Positions.t
     -> (Sexp.t -> 'a)
-    -> ('a single_or_many, Of_sexp_error.t) Result.t
+    -> ('a single_or_many, Of_sexp_error.t) result
   val conv_exn
     :  Sexp.t single_or_many * Positions.t
     -> (Sexp.t -> 'a)
@@ -190,20 +191,20 @@ module type Conv = sig
       For instance if you have a [load] function as follow:
 
       {[
-        val load : string -> (Sexp.t list * Positions.t, Parse_error.t) Result.t
+        val load : string -> (Sexp.t list * Positions.t, Parse_error.t) result
       ]}
 
       then you can create a [load_conv] function as follow:
 
       {[
-        let load_conv : string -> (Sexp.t -> 'a) -> ('a list, Conv_error.t) Result.t
+        let load_conv : string -> (Sexp.t -> 'a) -> ('a list, Conv_error.t) result
           = fun filename f -> conv_combine (load filename) f
       ]}
   *)
   val conv_combine
-    :  (Sexp.t single_or_many * Positions.t, Parse_error.t) Result.t
+    :  (Sexp.t single_or_many * Positions.t, Parse_error.t) result
     -> (Sexp.t -> 'a)
-    -> ('a single_or_many, Conv_error.t) Result.t
+    -> ('a single_or_many, Conv_error.t) result
 end
 
 module type Parsexp = sig
@@ -211,7 +212,12 @@ module type Parsexp = sig
   module Cst       = Cst
 
   module Parse_error : sig
-    type t [@@deriving sexp_of]
+    type t [@@deriving_inline sexp_of]
+
+    include
+    sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@@end]
 
     val position : t -> Positions.pos
     val message  : t -> string
@@ -222,7 +228,7 @@ module type Parsexp = sig
         Error: s-expression parsing error;
         unterminated quoted string.
     *)
-    val report : Caml.Format.formatter -> filename:string -> t -> unit
+    val report : Format.formatter -> filename:string -> t -> unit
   end
 
   module type Parser       = Parser with module Error := Parse_error
@@ -247,7 +253,12 @@ module type Parsexp = sig
   module Eager_cst : Eager_parser with type parsed_value = Cst.t_or_comment
 
   module Of_sexp_error : sig
-    type t [@@deriving sexp_of]
+    type t [@@deriving_inline sexp_of]
+
+    include
+    sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@@end]
 
     (** Exception raised by the user function *)
     val user_exn : t -> exn
@@ -259,7 +270,7 @@ module type Parsexp = sig
     val location : t -> Positions.range option
 
     (** Similar to [Parse_error.report] *)
-    val report : Caml.Format.formatter -> filename:string -> t -> unit
+    val report : Format.formatter -> filename:string -> t -> unit
   end
 
   (** Exception raised in case of a conversion error *)
@@ -269,10 +280,15 @@ module type Parsexp = sig
     type t =
       | Parse_error   of Parse_error.t
       | Of_sexp_error of Of_sexp_error.t
-    [@@deriving sexp_of]
+    [@@deriving_inline sexp_of]
+
+    include
+    sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@@end]
 
     (** Similar to [Parse_error.report] *)
-    val report : Caml.Format.formatter -> filename:string -> t -> unit
+    val report : Format.formatter -> filename:string -> t -> unit
   end
 
   module type Conv = Conv

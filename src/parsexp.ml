@@ -1,4 +1,5 @@
-open! Base
+open Import
+open Ppx_sexp_conv_lib
 
 module Positions = Positions
 module Cst       = Cst
@@ -44,7 +45,7 @@ module Parse_error = struct
   let report ppf ~filename t =
     let pos = position t in
     let msg = message  t in
-    Caml.Format.fprintf ppf
+    Format.fprintf ppf
       "File \"%s\", line %d, character %d:\n\
        Error: s-expression parsing error;\n\
        %s\n"
@@ -57,7 +58,34 @@ module Of_sexp_error = struct
     ; sub_sexp : Sexp.t
     ; location : Positions.range option
     }
-  [@@deriving sexp_of]
+  [@@deriving_inline sexp_of]
+
+  let sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t =
+    function
+    | { user_exn = v_user_exn; sub_sexp = v_sub_sexp; location = v_location }
+      ->
+      let bnds = []  in
+      let bnds =
+        let arg = sexp_of_option Positions.sexp_of_range v_location  in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "location"; arg])
+        :: bnds
+      in
+      let bnds =
+        let arg = Sexp.sexp_of_t v_sub_sexp  in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "sub_sexp"; arg])
+        :: bnds
+      in
+      let bnds =
+        let arg = sexp_of_exn v_user_exn  in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "user_exn"; arg])
+        :: bnds
+      in
+      Ppx_sexp_conv_lib.Sexp.List bnds
+
+  [@@@end]
 
   let user_exn t = t.user_exn
   let sub_sexp t = t.sub_sexp
@@ -72,18 +100,31 @@ module Of_sexp_error = struct
          start_pos.col,
          start_pos.col + end_pos.offset - start_pos.offset)
     in
-    Caml.Format.fprintf ppf
+    Format.fprintf ppf
       "File \"%s\", line %d, characters %d-%d:\n\
        Error: s-expression conversion error;\n\
        exception %s\n"
-      filename line start stop (Exn.to_string t.user_exn)
+      filename line start stop (Printexc.to_string t.user_exn)
 end
 
 module Conv_error = struct
   type t =
     | Parse_error   of Parse_error.t
     | Of_sexp_error of Of_sexp_error.t
-  [@@deriving sexp_of]
+  [@@deriving_inline sexp_of]
+
+  let sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t =
+    function
+    | Parse_error v0 ->
+      let v0 = Parse_error.sexp_of_t v0  in
+      Ppx_sexp_conv_lib.Sexp.List
+        [Ppx_sexp_conv_lib.Sexp.Atom "Parse_error"; v0]
+    | Of_sexp_error v0 ->
+      let v0 = Of_sexp_error.sexp_of_t v0  in
+      Ppx_sexp_conv_lib.Sexp.List
+        [Ppx_sexp_conv_lib.Sexp.Atom "Of_sexp_error"; v0]
+
+  [@@@end]
 
   let report ppf ~filename t =
     match t with
@@ -102,7 +143,18 @@ module type Conv = Parsexp_intf.Conv
 module type Eager_parser = Parsexp_intf.Eager_parser
 
 exception Parse_error = A.Parse_error
-exception Of_sexp_error of Of_sexp_error.t [@@deriving sexp_of]
+exception Of_sexp_error of Of_sexp_error.t [@@deriving_inline sexp_of]
+let () =
+  Ppx_sexp_conv_lib.Conv.Exn_converter.add
+    ([%extension_constructor Of_sexp_error])
+    (function
+      | Of_sexp_error v0 ->
+        let v0 = Of_sexp_error.sexp_of_t v0  in
+        Ppx_sexp_conv_lib.Sexp.List
+          [Ppx_sexp_conv_lib.Sexp.Atom "parsexp.ml.Of_sexp_error"; v0]
+      | _ -> assert false)
+
+[@@@end]
 
 
 module Make(Params : sig
@@ -226,7 +278,7 @@ module Make_eager(Params : sig
 
     exception Got_sexp of parsed_value * Positions.pos
     let got_sexp state parsed_value =
-      Exn.raise_without_backtrace (Got_sexp (parsed_value, State.position state))
+      raise_notrace (Got_sexp (parsed_value, State.position state))
 
     let create () = State.create got_sexp
 
@@ -283,7 +335,9 @@ module Make_eager(Params : sig
 
     let parse t lexbuf =
       set_no_sexp_is_error t true;
-      Option.value_exn (parse_gen t lexbuf)
+      match parse_gen t lexbuf with
+      | Some x -> x
+      | None -> failwith "Parsexp.parse_gen: None"
 
     let parse_opt t lexbuf =
       set_no_sexp_is_error t false;
@@ -427,7 +481,7 @@ module Make_conv
       let positions = Parser_pos.parse_string_exn str in
       reraise positions parsed_value exn ~sub
 
-  let parse_string str f : (_, Conv_error.t) Result.t =
+  let parse_string str f : (_, Conv_error.t) result =
     match parse_string_exn str f with
     | x                           -> Ok x
     | exception (Parse_error   e) -> Error (Parse_error   e)
@@ -444,7 +498,7 @@ module Make_conv
     | x                           -> Ok x
     | exception (Of_sexp_error e) -> Error e
 
-  let conv_combine result f : (_, Conv_error.t) Result.t =
+  let conv_combine result f : (_, Conv_error.t) result =
     match result with
     | Error e ->
       Error (Parse_error e)
@@ -469,7 +523,7 @@ module Conv_many =
   Make_conv
     (struct
       type 'a t = 'a list
-      let map x ~f = List.map x ~f
+      let map x ~f = List.rev (List.rev_map f x)
       let find = Positions.find_sub_sexp_in_list_phys
     end)
     (Many)

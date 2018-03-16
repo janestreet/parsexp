@@ -1,4 +1,5 @@
-open Base
+open Import
+open Ppx_sexp_conv_lib
 
 module Public = struct
   type stack =
@@ -64,7 +65,6 @@ module Public = struct
         { got_sexp                 : ('u, 's) state -> 's -> 's
         ; mutable no_sexp_is_error : bool
         }
-  [@@deriving fields]
 
   let initial_user_state : type u s. (u, s) kind -> Positions.pos -> u =
     fun kind initial_pos ->
@@ -126,16 +126,15 @@ module Public = struct
     | Cst                 -> Buffer.clear t.user_state.token_buffer
 
   let reset ?(pos=Positions.beginning_of_file) t =
-    Fields_of_state.Direct.set_all_mutable_fields t
-      ~depth:               0
-      ~automaton_state:     initial_state
-      ~block_comment_depth: 0
-      ~ignoring_stack:      []
-      ~escaped_value:       0
-      ~full_sexps:          0
-      ~offset:              pos.offset
-      ~line_number:         pos.line
-      ~bol_offset:          (pos.offset - pos.col);
+    t.depth <- 0;
+    t.automaton_state <- initial_state;
+    t.block_comment_depth <- 0;
+    t.ignoring_stack <- [];
+    t.escaped_value <- 0;
+    t.full_sexps <- 0;
+    t.offset <- pos.offset;
+    t.line_number <- pos.line;
+    t.bol_offset <- pos.offset - pos.col;
     reset_user_state t;
     Buffer.clear t.atom_buffer
 
@@ -167,7 +166,22 @@ module Public = struct
       | Parsing_list
       | Parsing_sexp_comment
       | Parsing_block_comment
-    [@@deriving sexp_of]
+    [@@deriving_inline sexp_of]
+
+    let sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t =
+      function
+      | Parsing_toplevel_whitespace  ->
+        Ppx_sexp_conv_lib.Sexp.Atom "Parsing_toplevel_whitespace"
+      | Parsing_nested_whitespace  ->
+        Ppx_sexp_conv_lib.Sexp.Atom "Parsing_nested_whitespace"
+      | Parsing_atom  -> Ppx_sexp_conv_lib.Sexp.Atom "Parsing_atom"
+      | Parsing_list  -> Ppx_sexp_conv_lib.Sexp.Atom "Parsing_list"
+      | Parsing_sexp_comment  ->
+        Ppx_sexp_conv_lib.Sexp.Atom "Parsing_sexp_comment"
+      | Parsing_block_comment  ->
+        Ppx_sexp_conv_lib.Sexp.Atom "Parsing_block_comment"
+
+    [@@@end]
   end
 
   module Error = struct
@@ -177,15 +191,32 @@ module Public = struct
       ; old_parser_exn : [ `Parse_error | `Failure ]
       }
 
-    let sexp_of_t { position; message; old_parser_exn = _ } =
-      [%sexp { position : Positions.pos; message : string }]
+    let sexp_of_t { position; message; old_parser_exn = _ } : Sexp.t =
+      List
+        [ List [ Atom "position"; Positions.sexp_of_pos position ]
+        ; List [ Atom "message" ; sexp_of_string message         ]
+        ]
 
     let position       t = t.position
     let message        t = t.message
     let old_parser_exn t = t.old_parser_exn
   end
 
-  exception Parse_error of Error.t [@@deriving sexp]
+  exception Parse_error of Error.t [@@deriving_inline sexp]
+
+  let () =
+    Ppx_sexp_conv_lib.Conv.Exn_converter.add
+      ([%extension_constructor Parse_error])
+      (function
+        | Parse_error v0 ->
+          let v0 = Error.sexp_of_t v0  in
+          Ppx_sexp_conv_lib.Sexp.List
+            [Ppx_sexp_conv_lib.Sexp.Atom
+               "parser_automaton_internal.ml.Public.Parse_error";
+             v0]
+        | _ -> assert false)
+
+  [@@@end]
 
   let sexp_of_stack : stack -> Sexp.t = function
     | Sexp (sexp, Empty) -> sexp
@@ -402,13 +433,13 @@ let eps_add_escaped_cr state stack =
   Buffer.add_char state.atom_buffer '\r';
   stack
 
-let dec_val c = Char.to_int c - Char.to_int '0'
+let dec_val c = Char.code c - Char.code '0'
 
 let hex_val c =
   match c with
-  | '0'..'9' -> Char.to_int c - Char.to_int '0'
-  | 'a'..'f' -> Char.to_int c - Char.to_int 'a' + 10
-  | _        -> Char.to_int c - Char.to_int 'A' + 10
+  | '0'..'9' -> Char.code c - Char.code '0'
+  | 'a'..'f' -> Char.code c - Char.code 'a' + 10
+  | _        -> Char.code c - Char.code 'A' + 10
 
 let add_dec_escape_char state c stack =
   state.escaped_value <- state.escaped_value * 10 + dec_val c;
@@ -418,7 +449,7 @@ let add_last_dec_escape_char state c stack =
   let value = state.escaped_value * 10 + dec_val c in
   state.escaped_value <- 0;
   if value > 255 then Error.raise state ~at_eof:false Escape_sequence_out_of_range;
-  Buffer.add_char state.atom_buffer (Char.of_int_exn value);
+  Buffer.add_char state.atom_buffer (Char.chr value);
   add_token_char state c stack
 
 let comment_add_last_dec_escape_char state c stack =
@@ -434,7 +465,7 @@ let add_hex_escape_char state c stack =
 let add_last_hex_escape_char state c stack =
   let value = (state.escaped_value lsl 4) lor hex_val c in
   state.escaped_value <- 0;
-  Buffer.add_char state.atom_buffer (Char.of_int_exn value);
+  Buffer.add_char state.atom_buffer (Char.chr value);
   add_token_char state c stack
 
 let opening : type u s. (u, s) state -> char -> s -> s = fun state _char stack ->

@@ -22,7 +22,7 @@ module Char_class = struct
   end
 
   let compute (table : Table.t)  =
-    let transitions_to_class = Hashtbl.create (module T) () in
+    let transitions_to_class = Hashtbl.create (module T) in
     let classes = Array.create 0 ~len:256 in
     for i = 0 to 255 do
       let transitions =

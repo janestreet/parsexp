@@ -1,6 +1,7 @@
 (** Internal bits used by the generated automaton, not part of the public API *)
 
-open Base
+open Import
+open Ppx_sexp_conv_lib
 
 (*_ Interface exposed in [Parser_automaton] *)
 module Public :
@@ -65,7 +66,11 @@ sig
   val sexps_cst_of_stack : stack_cst -> Cst.t_or_comment list
 
   module Error : sig
-    type t [@@deriving sexp_of]
+    type t [@@deriving_inline sexp_of]
+    include sig [@@@ocaml.warning "-32"]
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@@end]
 
     val position : t -> Positions.pos
     val message  : t -> string
@@ -91,7 +96,11 @@ sig
       | Parsing_list
       | Parsing_sexp_comment
       | Parsing_block_comment
-    [@@deriving sexp_of]
+    [@@deriving_inline sexp_of]
+    include sig [@@@ocaml.warning "-32"]
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@@end]
   end
 
   (*_ For coverate tests *)

@@ -1,7 +1,5 @@
 (** Parser automaton *)
 
-open! Base
-
 (** Warning: the API of this module is not fixed and might change! Use {!Sexp_parsing} for
     the stable version. *)
 

@@ -9,15 +9,8 @@ build: [
   ["jbuilder" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "base"
-  "ppx_compare"
-  "ppx_driver"
-  "ppx_fields_conv"
-  "ppx_js_style"
-  "ppx_sexp_conv"
-  "ppx_sexp_value"
-  "jbuilder"                {build & >= "1.0+beta12"}
-  "ocaml-migrate-parsetree" {>= "1.0"}
+  "sexplib0"
+  "jbuilder" {build & >= "1.0+beta18.1"}
 ]
 available: [ ocaml-version >= "4.04.1" ]
 descr: "

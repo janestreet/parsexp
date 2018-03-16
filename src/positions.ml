@@ -62,14 +62,41 @@
    character atoms to be less frequent so it makes sense to penalize them instead.
 *)
 
-open Base
+open Import
+open Ppx_sexp_conv_lib
+
+module List = ListLabels
 
 type pos =
   { line   : int
   ; col    : int
   ; offset : int
   }
-[@@deriving sexp_of, compare]
+[@@deriving_inline sexp_of]
+let sexp_of_pos : pos -> Ppx_sexp_conv_lib.Sexp.t =
+  function
+  | { line = v_line; col = v_col; offset = v_offset } ->
+    let bnds = []  in
+    let bnds =
+      let arg = sexp_of_int v_offset  in
+      (Ppx_sexp_conv_lib.Sexp.List
+         [Ppx_sexp_conv_lib.Sexp.Atom "offset"; arg])
+      :: bnds
+    in
+    let bnds =
+      let arg = sexp_of_int v_col  in
+      (Ppx_sexp_conv_lib.Sexp.List [Ppx_sexp_conv_lib.Sexp.Atom "col"; arg])
+      :: bnds
+    in
+    let bnds =
+      let arg = sexp_of_int v_line  in
+      (Ppx_sexp_conv_lib.Sexp.List
+         [Ppx_sexp_conv_lib.Sexp.Atom "line"; arg])
+      :: bnds
+    in
+    Ppx_sexp_conv_lib.Sexp.List bnds
+[@@@end]
+let compare_pos = Pervasives.compare
 
 let beginning_of_file = { line = 1; col = 0; offset = 0 }
 
@@ -80,7 +107,27 @@ let shift_pos pos ~cols =
   }
 
 type range = { start_pos : pos; end_pos : pos }
-[@@deriving sexp_of, compare]
+[@@deriving_inline sexp_of]
+let sexp_of_range : range -> Ppx_sexp_conv_lib.Sexp.t =
+  function
+  | { start_pos = v_start_pos; end_pos = v_end_pos } ->
+    let bnds = []  in
+    let bnds =
+      let arg = sexp_of_pos v_end_pos  in
+      (Ppx_sexp_conv_lib.Sexp.List
+         [Ppx_sexp_conv_lib.Sexp.Atom "end_pos"; arg])
+      :: bnds
+    in
+    let bnds =
+      let arg = sexp_of_pos v_start_pos  in
+      (Ppx_sexp_conv_lib.Sexp.List
+         [Ppx_sexp_conv_lib.Sexp.Atom "start_pos"; arg])
+      :: bnds
+    in
+    Ppx_sexp_conv_lib.Sexp.List bnds
+
+[@@@end]
+let compare_range = Pervasives.compare
 
 let make_range_incl ~start_pos ~last_pos =
   { start_pos
@@ -151,9 +198,10 @@ let memory_footprint_in_bytes (lazy t) =
   let num_fields = 4 in
   let header_words = 1 in
   let word_bytes =
-    match Word_size.word_size with
-    | W32 -> 4
-    | W64 -> 8
+    match Sys.word_size with
+    | 32 -> 4
+    | 64 -> 8
+    | _  -> assert false
   in
   let chunk_words =
     let div_ceil a b = (a + b - 1) / b in
@@ -347,7 +395,7 @@ end = struct
   ;;
 
   exception No_more
-  let no_more () = Exn.raise_without_backtrace No_more
+  let no_more () = raise_notrace No_more
 
   let [@inlined never] fetch_chunk t =
     match t.chunks with
@@ -463,8 +511,8 @@ module Sexp_search = struct
   exception Found of int
 
   let rec loop ~sub index (sexp : Sexp.t) =
-    if phys_equal sexp sub then
-      Exn.raise_without_backtrace (Found index)
+    if sexp == sub then
+      raise_notrace (Found index)
     else
       match sexp with
       | Atom _ -> index + 2
@@ -506,6 +554,5 @@ let to_list t =
 ;;
 
 let to_array t = to_list t |> Array.of_list
-
-let sexp_of_t t = [%sexp_of: pos array] (to_array t)
-let compare t1 t2 = [%compare: pos array] (to_array t1) (to_array t2)
+let compare t1 t2 = Pervasives.compare (to_array t1) (to_array t2)
+let sexp_of_t t = sexp_of_array sexp_of_pos  (to_array t)

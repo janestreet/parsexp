@@ -5,7 +5,7 @@
   (preprocess (pps (
                       ppx_js_style -check-doc-comments
                       ppx_sexp_conv
-                      ppx_compare ppx_driver.runner)))))
+                      ppx_compare ppxlib.runner)))))
 
 
 (jbuild_version 1)

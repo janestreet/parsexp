@@ -6,7 +6,7 @@
     One can use this type to do low-level rewriting of s-expression files.
 *)
 
-open! Base
+open Import
 
 type t =
   | Atom of
@@ -35,10 +35,21 @@ and comment =
       ; comments      : comment list
       ; sexp          : t
       }
-[@@deriving compare, sexp_of]
+[@@deriving_inline compare, sexp_of]
+include
+sig
+  [@@@ocaml.warning "-32"]
+  val compare : t -> t -> int
+  val compare_t_or_comment : t_or_comment -> t_or_comment -> int
+  val compare_comment : comment -> comment -> int
+  val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+  val sexp_of_t_or_comment : t_or_comment -> Ppx_sexp_conv_lib.Sexp.t
+  val sexp_of_comment : comment -> Ppx_sexp_conv_lib.Sexp.t
+end
+[@@@end]
 
 module Forget : sig
-  val t             : t                 -> Sexp.t
-  val t_or_comment  : t_or_comment      -> Sexp.t option
-  val t_or_comments : t_or_comment list -> Sexp.t list
+  val t             : t                 -> Ppx_sexp_conv_lib.Sexp.t
+  val t_or_comment  : t_or_comment      -> Ppx_sexp_conv_lib.Sexp.t option
+  val t_or_comments : t_or_comment list -> Ppx_sexp_conv_lib.Sexp.t list
 end
