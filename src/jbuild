@@ -19,7 +19,6 @@
                     ;; mode is released as it will disable these
                     ;; extensions
                     -apply=js_style,type_conv)))
-  (flags (:standard -safe-string))
 ))
 
 (rule

@@ -2,7 +2,6 @@
 ;; sexplib on ppx_inline_test.
 (library
  ((name parsexp_test)
-  (flags (:standard -safe-string))
   (libraries (base
               stdio
               parsexp
