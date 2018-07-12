@@ -456,15 +456,15 @@ module Eager_cst = Make_eager(struct
 
 module Make_conv
     (Mode : sig
-       type 'a t
-       val map : Sexp.t t -> f:(Sexp.t -> 'a) -> 'a t
-       val find : Positions.t -> Sexp.t t -> sub:Sexp.t -> Positions.range option
+       type parsed_sexp
+       type 'a res
+       type chunk_to_conv
+       val apply_f : parsed_sexp -> f:(chunk_to_conv -> 'r) -> 'r res
+       val find : Positions.t -> parsed_sexp -> sub:Sexp.t -> Positions.range option
      end)
-    (Parser      : Parser with type parsed_value = Sexp.t Mode.t)
+    (Parser      : Parser with type parsed_value = Mode.parsed_sexp)
     (Parser_pos  : Parser with type parsed_value = Positions.t)
 = struct
-  type 'a single_or_many = 'a Mode.t
-
   let reraise positions parsed_value ~sub exn =
     let loc = Mode.find positions parsed_value ~sub in
     raise (Of_sexp_error
@@ -475,7 +475,7 @@ module Make_conv
 
   let parse_string_exn str f =
     let parsed_value = Parser.parse_string_exn str in
-    match Mode.map parsed_value ~f with
+    match Mode.apply_f parsed_value ~f with
     | x -> x
     | exception (Sexp.Of_sexp_error (exn, sub)) ->
       let positions = Parser_pos.parse_string_exn str in
@@ -488,7 +488,7 @@ module Make_conv
     | exception (Of_sexp_error e) -> Error (Of_sexp_error e)
 
   let conv_exn (parsed_value, positions) f =
-    match Mode.map parsed_value ~f with
+    match Mode.apply_f parsed_value ~f with
     | x -> x
     | exception (Sexp.Of_sexp_error (exn, sub)) ->
       reraise positions parsed_value exn ~sub
@@ -509,11 +509,15 @@ module Make_conv
         Error (Of_sexp_error e)
 end
 
+type 'a id = 'a
+type sexp_list = Sexp.t list
 module Conv_single =
   Make_conv
     (struct
-      type 'a t = 'a
-      let map x ~f = f x
+      type 'a res = 'a
+      type parsed_sexp = Sexp.t
+      type chunk_to_conv = Sexp.t
+      let apply_f x ~f = f x
       let find = Positions.find_sub_sexp_phys
     end)
     (Single)
@@ -522,8 +526,22 @@ module Conv_single =
 module Conv_many =
   Make_conv
     (struct
-      type 'a t = 'a list
-      let map x ~f = List.rev (List.rev_map f x)
+      type 'a res = 'a list
+      type parsed_sexp = Sexp.t list
+      type chunk_to_conv = Sexp.t
+      let apply_f x ~f = List.rev (List.rev_map f x)
+      let find = Positions.find_sub_sexp_in_list_phys
+    end)
+    (Many)
+    (Many_just_positions)
+
+module Conv_many_at_once =
+  Make_conv
+    (struct
+      type 'a res = 'a
+      type parsed_sexp = Sexp.t list
+      type chunk_to_conv = Sexp.t list
+      let apply_f x ~f = f x
       let find = Positions.find_sub_sexp_in_list_phys
     end)
     (Many)

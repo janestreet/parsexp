@@ -168,23 +168,25 @@ module type Eager_parser = sig
 end
 
 module type Conv = sig
-  type 'a single_or_many
+  type 'a res
+  type chunk_to_conv
+  type parsed_sexp
 
   module Parse_error   : sig type t end
   module Of_sexp_error : sig type t end
   module Conv_error    : sig type t end
 
-  val parse_string     : string -> (Sexp.t -> 'a) -> ('a single_or_many, Conv_error.t) result
-  val parse_string_exn : string -> (Sexp.t -> 'a) -> 'a single_or_many
+  val parse_string     : string -> (chunk_to_conv -> 'a) -> ('a res, Conv_error.t) result
+  val parse_string_exn : string -> (chunk_to_conv -> 'a) -> 'a res
 
   val conv
-    :  Sexp.t single_or_many * Positions.t
-    -> (Sexp.t -> 'a)
-    -> ('a single_or_many, Of_sexp_error.t) result
+    :  parsed_sexp * Positions.t
+    -> (chunk_to_conv -> 'a)
+    -> ('a res, Of_sexp_error.t) result
   val conv_exn
-    :  Sexp.t single_or_many * Positions.t
-    -> (Sexp.t -> 'a)
-    -> 'a single_or_many
+    :  parsed_sexp * Positions.t
+    -> (chunk_to_conv -> 'a)
+    -> 'a res
 
   (** Convenience function for merging parsing and conversion errors.
 
@@ -202,9 +204,9 @@ module type Conv = sig
       ]}
   *)
   val conv_combine
-    :  (Sexp.t single_or_many * Positions.t, Parse_error.t) result
-    -> (Sexp.t -> 'a)
-    -> ('a single_or_many, Conv_error.t) result
+    :  (parsed_sexp * Positions.t, Parse_error.t) result
+    -> (chunk_to_conv -> 'a)
+    -> ('a res, Conv_error.t) result
 end
 
 module type Parsexp = sig
@@ -296,6 +298,21 @@ module type Parsexp = sig
     with module Of_sexp_error := Of_sexp_error
     with module Conv_error    := Conv_error
 
-  module Conv_single : Conv with type 'a single_or_many = 'a
-  module Conv_many   : Conv with type 'a single_or_many = 'a list
+  (*_ These type synonyms are introduced because older versions of OCaml
+    do not support destructive substitutions with `type 'a t1 = t2`
+    or `type t1 = 'a t2`. *)
+  type 'a id = 'a
+  type sexp_list = Sexp.t list
+  module Conv_single : Conv
+    with type 'a res := 'a id
+     and type parsed_sexp := Sexp.t
+     and type chunk_to_conv := Sexp.t
+  module Conv_many : Conv
+    with type 'a res := 'a list
+     and type parsed_sexp := sexp_list
+     and type chunk_to_conv := Sexp.t
+  module Conv_many_at_once : Conv
+    with type 'a res := 'a id
+     and type parsed_sexp := sexp_list
+     and type chunk_to_conv := sexp_list
 end
