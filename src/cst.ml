@@ -120,9 +120,9 @@ and sexp_of_comment : comment -> Ppx_sexp_conv_lib.Sexp.t =
 
 [@@@end]
 
-let compare              = Pervasives.compare
-let compare_t_or_comment = Pervasives.compare
-let compare_comment      = Pervasives.compare
+let compare              = Caml.compare
+let compare_t_or_comment = Caml.compare
+let compare_comment      = Caml.compare
 
 module Forget = struct
   (* In cps to prevent non-tail recursion.

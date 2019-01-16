@@ -96,7 +96,7 @@ let sexp_of_pos : pos -> Ppx_sexp_conv_lib.Sexp.t =
     in
     Ppx_sexp_conv_lib.Sexp.List bnds
 [@@@end]
-let compare_pos = Pervasives.compare
+let compare_pos = Caml.compare
 
 let beginning_of_file = { line = 1; col = 0; offset = 0 }
 
@@ -127,7 +127,7 @@ let sexp_of_range : range -> Ppx_sexp_conv_lib.Sexp.t =
     Ppx_sexp_conv_lib.Sexp.List bnds
 
 [@@@end]
-let compare_range = Pervasives.compare
+let compare_range = Caml.compare
 
 let make_range_incl ~start_pos ~last_pos =
   { start_pos
@@ -554,5 +554,5 @@ let to_list t =
 ;;
 
 let to_array t = to_list t |> Array.of_list
-let compare t1 t2 = Pervasives.compare (to_array t1) (to_array t2)
+let compare t1 t2 = Caml.compare (to_array t1) (to_array t2)
 let sexp_of_t t = sexp_of_array sexp_of_pos  (to_array t)
