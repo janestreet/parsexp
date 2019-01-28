@@ -45,7 +45,7 @@ sig
   val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
   val sexp_of_t_or_comment : t_or_comment -> Ppx_sexp_conv_lib.Sexp.t
   val sexp_of_comment : comment -> Ppx_sexp_conv_lib.Sexp.t
-end
+end[@@ocaml.doc "@inline"]
 [@@@end]
 
 module Forget : sig

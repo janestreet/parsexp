@@ -21,7 +21,7 @@ sig
   [@@@ocaml.warning "-32"]
   val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
   val compare : t -> t -> int
-end
+end[@@ocaml.doc "@inline"]
 [@@@end]
 
 (** Represent a position in the input *)
@@ -37,7 +37,7 @@ sig
   [@@@ocaml.warning "-32"]
   val sexp_of_pos : pos -> Ppx_sexp_conv_lib.Sexp.t
   val compare_pos : pos -> pos -> int
-end
+end[@@ocaml.doc "@inline"]
 [@@@end]
 
 val beginning_of_file : pos
@@ -57,7 +57,7 @@ sig
   [@@@ocaml.warning "-32"]
   val sexp_of_range : range -> Ppx_sexp_conv_lib.Sexp.t
   val compare_range : range -> range -> int
-end
+end[@@ocaml.doc "@inline"]
 [@@@end]
 
 (** Make a range from two positions where both positions are inclusive, i.e. [start_pos]
