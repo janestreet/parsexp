@@ -225,7 +225,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
 
 let witness_for_class cl =
   let rec loop i =
-    if i = 256 then raise Caml.Not_found;
+    if i = 256 then  raise Caml.Not_found;
     if Char_class.of_char (Char.of_int_exn i) = cl then
       Char.of_int_exn i
     else
