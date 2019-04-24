@@ -218,8 +218,8 @@ module type Parsexp = sig
 
 
     include
-    sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-    end[@@ocaml.doc "@inline"]
+      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     val position : t -> Positions.pos
@@ -260,8 +260,8 @@ module type Parsexp = sig
 
 
     include
-    sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-    end[@@ocaml.doc "@inline"]
+      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     (** Exception raised by the user function *)
@@ -288,8 +288,8 @@ module type Parsexp = sig
 
 
     include
-    sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-    end[@@ocaml.doc "@inline"]
+      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     (** Similar to [Parse_error.report] *)

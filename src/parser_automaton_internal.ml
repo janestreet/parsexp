@@ -68,16 +68,16 @@ module Public = struct
 
   let initial_user_state : type u s. (u, s) kind -> Positions.pos -> u =
     fun kind initial_pos ->
-      match kind with
-      | Positions           -> Positions.Builder.create ~initial_pos ()
-      | Sexp                -> ()
-      | Sexp_with_positions -> Positions.Builder.create ~initial_pos ()
-      | Cst                 ->
-        (* [token_start_pos] is set to a dummy location here. It is properly set when we
-           start to capture a token from the input *)
-        { token_buffer    = Buffer.create 128
-        ; token_start_pos = Positions.beginning_of_file
-        }
+    match kind with
+    | Positions           -> Positions.Builder.create ~initial_pos ()
+    | Sexp                -> ()
+    | Sexp_with_positions -> Positions.Builder.create ~initial_pos ()
+    | Cst                 ->
+      (* [token_start_pos] is set to a dummy location here. It is properly set when we
+         start to capture a token from the input *)
+      { token_buffer    = Buffer.create 128
+      ; token_start_pos = Positions.beginning_of_file
+      }
 
   (* these magic numbers are checked in gen_parser_automaton.ml:
      let () = assert (initial = 0)
@@ -545,19 +545,19 @@ let maybe_pop_ignoring_stack state =
 
 let sexp_added : type u s. (u, s) state -> s -> delta:int -> s =
   fun state stack ~delta ->
-    let is_comment = maybe_pop_ignoring_stack state in
-    if is_top_level state
-    then
-      begin
-        if not is_comment then
-          state.full_sexps <- state.full_sexps + 1;
-        if not is_comment || (match state.kind with Cst -> true | _ -> false) then
-          toplevel_sexp_or_comment_added state stack ~delta
-        else
-          stack
-      end
-    else
-      stack
+  let is_comment = maybe_pop_ignoring_stack state in
+  if is_top_level state
+  then
+    begin
+      if not is_comment then
+        state.full_sexps <- state.full_sexps + 1;
+      if not is_comment || (match state.kind with Cst -> true | _ -> false) then
+        toplevel_sexp_or_comment_added state stack ~delta
+      else
+        stack
+    end
+  else
+    stack
 
 let rec make_list acc : stack -> stack = function
   | Empty              -> assert false

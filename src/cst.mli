@@ -37,15 +37,15 @@ and comment =
       }
 [@@deriving_inline compare, sexp_of]
 include
-sig
-  [@@@ocaml.warning "-32"]
-  val compare : t -> t -> int
-  val compare_t_or_comment : t_or_comment -> t_or_comment -> int
-  val compare_comment : comment -> comment -> int
-  val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-  val sexp_of_t_or_comment : t_or_comment -> Ppx_sexp_conv_lib.Sexp.t
-  val sexp_of_comment : comment -> Ppx_sexp_conv_lib.Sexp.t
-end[@@ocaml.doc "@inline"]
+  sig
+    [@@@ocaml.warning "-32"]
+    val compare : t -> t -> int
+    val compare_t_or_comment : t_or_comment -> t_or_comment -> int
+    val compare_comment : comment -> comment -> int
+    val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    val sexp_of_t_or_comment : t_or_comment -> Ppx_sexp_conv_lib.Sexp.t
+    val sexp_of_comment : comment -> Ppx_sexp_conv_lib.Sexp.t
+  end[@@ocaml.doc "@inline"]
 [@@@end]
 
 module Forget : sig
