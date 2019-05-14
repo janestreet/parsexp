@@ -73,28 +73,26 @@ type pos =
   ; offset : int
   }
 [@@deriving_inline sexp_of]
-let sexp_of_pos : pos -> Ppx_sexp_conv_lib.Sexp.t =
-  function
-  | { line = v_line; col = v_col; offset = v_offset } ->
-    let bnds = []  in
-    let bnds =
-      let arg = sexp_of_int v_offset  in
-      (Ppx_sexp_conv_lib.Sexp.List
-         [Ppx_sexp_conv_lib.Sexp.Atom "offset"; arg])
-      :: bnds
-    in
-    let bnds =
-      let arg = sexp_of_int v_col  in
-      (Ppx_sexp_conv_lib.Sexp.List [Ppx_sexp_conv_lib.Sexp.Atom "col"; arg])
-      :: bnds
-    in
-    let bnds =
-      let arg = sexp_of_int v_line  in
-      (Ppx_sexp_conv_lib.Sexp.List
-         [Ppx_sexp_conv_lib.Sexp.Atom "line"; arg])
-      :: bnds
-    in
-    Ppx_sexp_conv_lib.Sexp.List bnds
+let sexp_of_pos =
+  (function
+    | { line = v_line; col = v_col; offset = v_offset } ->
+      let bnds = [] in
+      let bnds =
+        let arg = sexp_of_int v_offset in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "offset"; arg])
+        :: bnds in
+      let bnds =
+        let arg = sexp_of_int v_col in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "col"; arg])
+        :: bnds in
+      let bnds =
+        let arg = sexp_of_int v_line in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "line"; arg])
+        :: bnds in
+      Ppx_sexp_conv_lib.Sexp.List bnds : pos -> Ppx_sexp_conv_lib.Sexp.t)
 [@@@end]
 let compare_pos = Caml.compare
 
@@ -108,23 +106,21 @@ let shift_pos pos ~cols =
 
 type range = { start_pos : pos; end_pos : pos }
 [@@deriving_inline sexp_of]
-let sexp_of_range : range -> Ppx_sexp_conv_lib.Sexp.t =
-  function
-  | { start_pos = v_start_pos; end_pos = v_end_pos } ->
-    let bnds = []  in
-    let bnds =
-      let arg = sexp_of_pos v_end_pos  in
-      (Ppx_sexp_conv_lib.Sexp.List
-         [Ppx_sexp_conv_lib.Sexp.Atom "end_pos"; arg])
-      :: bnds
-    in
-    let bnds =
-      let arg = sexp_of_pos v_start_pos  in
-      (Ppx_sexp_conv_lib.Sexp.List
-         [Ppx_sexp_conv_lib.Sexp.Atom "start_pos"; arg])
-      :: bnds
-    in
-    Ppx_sexp_conv_lib.Sexp.List bnds
+let sexp_of_range =
+  (function
+    | { start_pos = v_start_pos; end_pos = v_end_pos } ->
+      let bnds = [] in
+      let bnds =
+        let arg = sexp_of_pos v_end_pos in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "end_pos"; arg])
+        :: bnds in
+      let bnds =
+        let arg = sexp_of_pos v_start_pos in
+        (Ppx_sexp_conv_lib.Sexp.List
+           [Ppx_sexp_conv_lib.Sexp.Atom "start_pos"; arg])
+        :: bnds in
+      Ppx_sexp_conv_lib.Sexp.List bnds : range -> Ppx_sexp_conv_lib.Sexp.t)
 
 [@@@end]
 let compare_range = Caml.compare

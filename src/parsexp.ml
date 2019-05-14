@@ -60,31 +60,28 @@ module Of_sexp_error = struct
     }
   [@@deriving_inline sexp_of]
 
-  let sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t =
-    function
-    | { user_exn = v_user_exn; sub_sexp = v_sub_sexp; location = v_location }
-      ->
-      let bnds = []  in
-      let bnds =
-        let arg = sexp_of_option Positions.sexp_of_range v_location  in
-        (Ppx_sexp_conv_lib.Sexp.List
-           [Ppx_sexp_conv_lib.Sexp.Atom "location"; arg])
-        :: bnds
-      in
-      let bnds =
-        let arg = Sexp.sexp_of_t v_sub_sexp  in
-        (Ppx_sexp_conv_lib.Sexp.List
-           [Ppx_sexp_conv_lib.Sexp.Atom "sub_sexp"; arg])
-        :: bnds
-      in
-      let bnds =
-        let arg = sexp_of_exn v_user_exn  in
-        (Ppx_sexp_conv_lib.Sexp.List
-           [Ppx_sexp_conv_lib.Sexp.Atom "user_exn"; arg])
-        :: bnds
-      in
-      Ppx_sexp_conv_lib.Sexp.List bnds
 
+  let sexp_of_t =
+    (function
+      | { user_exn = v_user_exn; sub_sexp = v_sub_sexp; location = v_location }
+        ->
+        let bnds = [] in
+        let bnds =
+          let arg = sexp_of_option Positions.sexp_of_range v_location in
+          (Ppx_sexp_conv_lib.Sexp.List
+             [Ppx_sexp_conv_lib.Sexp.Atom "location"; arg])
+          :: bnds in
+        let bnds =
+          let arg = Sexp.sexp_of_t v_sub_sexp in
+          (Ppx_sexp_conv_lib.Sexp.List
+             [Ppx_sexp_conv_lib.Sexp.Atom "sub_sexp"; arg])
+          :: bnds in
+        let bnds =
+          let arg = sexp_of_exn v_user_exn in
+          (Ppx_sexp_conv_lib.Sexp.List
+             [Ppx_sexp_conv_lib.Sexp.Atom "user_exn"; arg])
+          :: bnds in
+        Ppx_sexp_conv_lib.Sexp.List bnds : t -> Ppx_sexp_conv_lib.Sexp.t)
   [@@@end]
 
   let user_exn t = t.user_exn
@@ -113,16 +110,18 @@ module Conv_error = struct
     | Of_sexp_error of Of_sexp_error.t
   [@@deriving_inline sexp_of]
 
-  let sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t =
-    function
-    | Parse_error v0 ->
-      let v0 = Parse_error.sexp_of_t v0  in
-      Ppx_sexp_conv_lib.Sexp.List
-        [Ppx_sexp_conv_lib.Sexp.Atom "Parse_error"; v0]
-    | Of_sexp_error v0 ->
-      let v0 = Of_sexp_error.sexp_of_t v0  in
-      Ppx_sexp_conv_lib.Sexp.List
-        [Ppx_sexp_conv_lib.Sexp.Atom "Of_sexp_error"; v0]
+
+  let sexp_of_t =
+    (function
+      | Parse_error v0 ->
+        let v0 = Parse_error.sexp_of_t v0 in
+        Ppx_sexp_conv_lib.Sexp.List
+          [Ppx_sexp_conv_lib.Sexp.Atom "Parse_error"; v0]
+      | Of_sexp_error v0 ->
+        let v0 = Of_sexp_error.sexp_of_t v0 in
+        Ppx_sexp_conv_lib.Sexp.List
+          [Ppx_sexp_conv_lib.Sexp.Atom "Of_sexp_error"; v0] : t ->
+        Ppx_sexp_conv_lib.Sexp.t)
 
   [@@@end]
 
