@@ -12,8 +12,9 @@ type t =
   | Atom of
       { loc       : Positions.range
       ; atom      : string
-      ; (** Original unescaped atom, in case it is a double-quoted atom. The string
-            includes the enclosing double quotes. *)
+      ; (** Source syntax of atom. The parser only fills this for atoms that are quoted in
+            the source, but it makes sense for unquoted atoms too (to ensure they get
+            printed unquoted). *)
         unescaped : string option
       }
   | List of
