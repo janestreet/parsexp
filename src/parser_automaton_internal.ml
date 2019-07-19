@@ -668,7 +668,7 @@ let eps_push_atom : type u s. (u, s) epsilon_action = fun state stack ->
       let sexp : Cst.t =
         Atom { loc
              ; atom      = str
-             ; unescaped = None
+             ; unescaped = Some str
              }
       in
       add_sexp_to_stack_cst sexp stack

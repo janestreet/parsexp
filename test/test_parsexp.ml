@@ -155,7 +155,7 @@ let%expect_test "regression test (we didn't run the callback on comments, result
                 (col    5)
                 (offset 5)))))
             (atom a)
-            (unescaped ()))))))
+            (unescaped (a)))))))
         (sexp (
           Atom
           (loc (
@@ -168,7 +168,7 @@ let%expect_test "regression test (we didn't run the callback on comments, result
               (col    7)
               (offset 7)))))
           (atom b)
-          (unescaped ()))))))) |}];
+          (unescaped (b)))))))) |}];
   test "a;\nb";
   [%expect {|
     (Ok (
@@ -184,7 +184,7 @@ let%expect_test "regression test (we didn't run the callback on comments, result
             (col    1)
             (offset 1)))))
         (atom a)
-        (unescaped ())))
+        (unescaped (a))))
       (Comment (
         Plain_comment
         (loc (
@@ -209,7 +209,7 @@ let%expect_test "regression test (we didn't run the callback on comments, result
             (col    1)
             (offset 4)))))
         (atom b)
-        (unescaped ()))))) |}];
+        (unescaped (b)))))) |}];
 ;;
 
 let%expect_test
