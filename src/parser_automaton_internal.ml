@@ -169,6 +169,8 @@ module Public = struct
     [@@deriving_inline sexp_of]
 
 
+
+
     let sexp_of_t =
       (function
         | Parsing_toplevel_whitespace ->
@@ -182,7 +184,6 @@ module Public = struct
         | Parsing_block_comment ->
           Ppx_sexp_conv_lib.Sexp.Atom "Parsing_block_comment" : t ->
           Ppx_sexp_conv_lib.Sexp.t)
-
     [@@@end]
   end
 
@@ -206,12 +207,14 @@ module Public = struct
 
   exception Parse_error of Error.t [@@deriving_inline sexp]
 
+
+
   let () =
     Ppx_sexp_conv_lib.Conv.Exn_converter.add
       ([%extension_constructor Parse_error])
       (function
         | Parse_error v0 ->
-          let v0 = Error.sexp_of_t v0  in
+          let v0 = Error.sexp_of_t v0 in
           Ppx_sexp_conv_lib.Sexp.List
             [Ppx_sexp_conv_lib.Sexp.Atom
                "parser_automaton_internal.ml.Public.Parse_error";

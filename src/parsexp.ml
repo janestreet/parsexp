@@ -61,6 +61,8 @@ module Of_sexp_error = struct
   [@@deriving_inline sexp_of]
 
 
+
+
   let sexp_of_t =
     (function
       | { user_exn = v_user_exn; sub_sexp = v_sub_sexp; location = v_location }
@@ -111,6 +113,8 @@ module Conv_error = struct
   [@@deriving_inline sexp_of]
 
 
+
+
   let sexp_of_t =
     (function
       | Parse_error v0 ->
@@ -122,7 +126,6 @@ module Conv_error = struct
         Ppx_sexp_conv_lib.Sexp.List
           [Ppx_sexp_conv_lib.Sexp.Atom "Of_sexp_error"; v0] : t ->
         Ppx_sexp_conv_lib.Sexp.t)
-
   [@@@end]
 
   let report ppf ~filename t =
@@ -148,7 +151,7 @@ let () =
     ([%extension_constructor Of_sexp_error])
     (function
       | Of_sexp_error v0 ->
-        let v0 = Of_sexp_error.sexp_of_t v0  in
+        let v0 = Of_sexp_error.sexp_of_t v0 in
         Ppx_sexp_conv_lib.Sexp.List
           [Ppx_sexp_conv_lib.Sexp.Atom "parsexp.ml.Of_sexp_error"; v0]
       | _ -> assert false)
