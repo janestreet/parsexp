@@ -154,8 +154,8 @@ end = struct
 
   let alloc () = Bytes.create length
 
-  external get16 : bytes -> pos:int -> int = "%caml_string_get16"
-  external set16 : bytes -> pos:int -> int -> unit = "%caml_string_set16"
+  let get16 = Bytes0.get16
+  let set16 = Bytes0.set16
 
   (* If we want to make a [Positions.t] serializable:
 
