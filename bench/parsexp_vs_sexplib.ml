@@ -1,6 +1,8 @@
 open Core_kernel
 open Poly
 
+module Unix = Caml_unix
+
 let data =
   let data_fn = "data.sexp" in
   if Sys.file_exists data_fn then
