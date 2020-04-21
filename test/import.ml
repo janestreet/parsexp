@@ -1,6 +1,6 @@
 include Base
 include Stdio
-include Expect_test_helpers_kernel
+include Expect_test_helpers_core
 
 let dummy_sexplib_error () =
   (* a hack to raise an arbitrary Parse_error *)
