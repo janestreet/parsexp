@@ -1,20 +1,17 @@
 (** Internal bits used by the generated automaton, not part of the public API *)
 
-open Import
-open Ppx_sexp_conv_lib
+open! Import
 
 (*_ Interface exposed in [Parser_automaton] *)
-module Public :
-sig
-
+module Public : sig
   (** Internal state of the automaton *)
   type ('user_state, 'stack) state
 
   type ('u, 's) mode =
     | Single (** Parse a single s-expression *)
-    | Many   (** Parse a list of s-expressions *)
+    | Many (** Parse a list of s-expressions *)
     | Eager of
-        { got_sexp                 : ('u, 's) state -> 's -> 's
+        { got_sexp : ('u, 's) state -> 's -> 's
         (** Whether to consider no s-expression in the input as an error or not.
 
             The mutability is used in [Parsexp.Eager*.Lexbuf_consumer].
@@ -23,19 +20,20 @@ sig
         } (** Gives back s-expressions as soon as they are found. *)
 
   type stack
+
   val empty_stack : stack
 
   type state_cst
-
   type stack_cst
+
   val empty_stack_cst : stack_cst
 
   type ('u, 's) kind =
     (*_ [Positions] case needs no stack because the [state] type keeps track of [depth]. *)
-    | Positions           : (Positions.Builder.t, unit) kind
-    | Sexp                : (unit, stack) kind
+    | Positions : (Positions.Builder.t, unit) kind
+    | Sexp : (unit, stack) kind
     | Sexp_with_positions : (Positions.Builder.t, stack) kind
-    | Cst                 : (state_cst, stack_cst) kind
+    | Cst : (state_cst, stack_cst) kind
 
   val new_state
     :  ?initial_pos:Positions.pos
@@ -44,23 +42,21 @@ sig
     -> ('u, 's) state
 
   val reset : ?pos:Positions.pos -> _ state -> unit
-
   val positions : (Positions.Builder.t, _) state -> Positions.t
-
   val mode : ('u, 's) state -> ('u, 's) mode
 
   (** Number of characters fed to the parser *)
   val offset : _ state -> int
 
   (** Position in the text *)
-  val line   : _ state -> int
+  val line : _ state -> int
+
   val column : _ state -> int
 
   (** Whether there are some unclosed parentheses *)
   val has_unclosed_paren : ('u, 's) state -> bool
 
   val set_error_state : _ state -> unit
-
   val sexp_of_stack : stack -> Sexp.t
   val sexps_of_stack : stack -> Sexp.t list
   val sexps_cst_of_stack : stack_cst -> Cst.t_or_comment list
@@ -68,17 +64,20 @@ sig
   module Error : sig
     type t [@@deriving_inline sexp_of]
 
+    include sig
+      [@@@ocaml.warning "-32"]
 
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@ocaml.doc "@inline"]
 
-    include
-      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     val position : t -> Positions.pos
-    val message  : t -> string
+    val message : t -> string
 
     (**/**)
+
     (*_ To match the old behavior, the old parser sometimes raised [Failure] and sometimes
       raised [Parse_error] *)
     val old_parser_exn : t -> [ `Parse_error | `Failure ]
@@ -101,11 +100,13 @@ sig
       | Parsing_block_comment
     [@@deriving_inline sexp_of]
 
+    include sig
+      [@@@ocaml.warning "-32"]
 
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@ocaml.doc "@inline"]
 
-    include
-      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-      end[@@ocaml.doc "@inline"]
     [@@@end]
   end
 
@@ -116,7 +117,9 @@ end
 open Public
 
 module Error : sig
-  include module type of struct include Error end
+  include module type of struct
+    include Error
+  end
 
   module Reason : sig
     type t =
@@ -138,26 +141,29 @@ module Error : sig
   val raise : _ state -> at_eof:bool -> Reason.t -> _
 end
 
-type context = Sexp_comment | Sexp
+type context =
+  | Sexp_comment
+  | Sexp
 
 val context : _ state -> context
-
 val set_automaton_state : ('u, 's) state -> int -> unit
 
 (** Advance the position counters. [advance_eol] is for when we read a newline
     character. *)
-val advance     : ('u, 's) state -> unit
+val advance : ('u, 's) state -> unit
+
 val advance_eol : ('u, 's) state -> unit
 
 (** Number of opened #| *)
 val block_comment_depth : ('u, 's) state -> int
 
-type ('u, 's) action         = ('u, 's) state -> char -> 's -> 's
-type ('u, 's) epsilon_action = ('u, 's) state ->         's -> 's
+type ('u, 's) action = ('u, 's) state -> char -> 's -> 's
+type ('u, 's) epsilon_action = ('u, 's) state -> 's -> 's
 
 (** Add a character to the atom buffer. [add_quoted_atom_char] does the same for quoted
     atoms *)
 val add_atom_char : _ action
+
 val add_quoted_atom_char : _ action
 
 (** Add a character that just follows a '\\' and the '\\' itself if necessary. *)
@@ -171,21 +177,24 @@ val add_escaped : _ action
 
     [add_last_dec_escape_char] also adds the resulting character to the atom buffer.
 *)
-val add_dec_escape_char      : _ action
+val add_dec_escape_char : _ action
+
 val add_last_dec_escape_char : _ action
 
 (** Same but for quoted strings inside comments. Useful because it can fail. *)
 val comment_add_last_dec_escape_char : _ action
 
 (** Same as [add_dec_escape_char] but for hexadicemal escape sequences *)
-val add_hex_escape_char      : _ action
+val add_hex_escape_char : _ action
+
 val add_last_hex_escape_char : _ action
 
 (** Ignore one more full sexp to come *)
 val start_sexp_comment : _ action
 
 (** Add the first char of an unquoted atom. *)
-val add_first_char      : _ action
+val add_first_char : _ action
+
 val start_quoted_string : _ action
 
 (** Takes note of a control character in quoted atoms or the uninterpreted characters of
@@ -195,18 +204,14 @@ val start_quoted_string : _ action
 *)
 val add_token_char : _ action
 
-val opening      : _ action
-val closing      : _ action
+val opening : _ action
+val closing : _ action
 val push_quoted_atom : _ action
-
 val start_block_comment : _ action
-val end_block_comment   : _ action
-
+val end_block_comment : _ action
 val start_line_comment : _ action
-val end_line_comment   : _ epsilon_action
-
-val eps_push_atom      : _ epsilon_action
-val eps_add_first_char_hash      : _ epsilon_action
-val eps_eoi_check      : _ epsilon_action
-
+val end_line_comment : _ epsilon_action
+val eps_push_atom : _ epsilon_action
+val eps_add_first_char_hash : _ epsilon_action
+val eps_eoi_check : _ epsilon_action
 val eps_add_escaped_cr : _ epsilon_action

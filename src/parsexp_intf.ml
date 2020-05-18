@@ -1,7 +1,6 @@
 (** Parsing of s-expression *)
 
-open Import
-open Ppx_sexp_conv_lib
+open! Import
 
 module type Parser_state = sig
   (** State of the parser *)
@@ -24,9 +23,9 @@ module type Parser_state = sig
   val offset : t -> int
 
   (** Position in the text *)
-  val line   : t -> int
-  val column : t -> int
 
+  val line : t -> int
+  val column : t -> int
   val position : t -> Positions.pos
 
   (** Prevent the state from receiving any more characters. Trying to feed more characters
@@ -64,9 +63,11 @@ module type Parser = sig
 
   (** {3 High-level functions} *)
 
-  module Error : sig type t end
+  module Error : sig
+    type t
+  end
 
-  val parse_string     : string -> (parsed_value, Error.t) result
+  val parse_string : string -> (parsed_value, Error.t) result
   val parse_string_exn : string -> parsed_value
 end
 
@@ -112,12 +113,12 @@ module type Eager_parser = sig
     include Parser_state
 
     module Read_only : sig
-      type t
       (** Read-only handle to a parser state *)
+      type t
 
-      val offset   : t -> int
-      val line     : t -> int
-      val column   : t -> int
+      val offset : t -> int
+      val line : t -> int
+      val column : t -> int
       val position : t -> Positions.pos
     end
 
@@ -140,7 +141,11 @@ module type Eager_parser = sig
       -> t
 
     (**/**)
-    val old_parser_cont_state : t -> Parser_automaton_internal.Public.Old_parser_cont_state.t
+
+    val old_parser_cont_state
+      :  t
+      -> Parser_automaton_internal.Public.Old_parser_cont_state.t
+
     (**/**)
   end
 
@@ -172,21 +177,27 @@ module type Conv = sig
   type chunk_to_conv
   type parsed_sexp
 
-  module Parse_error   : sig type t end
-  module Of_sexp_error : sig type t end
-  module Conv_error    : sig type t end
+  module Parse_error : sig
+    type t
+  end
 
-  val parse_string     : string -> (chunk_to_conv -> 'a) -> ('a res, Conv_error.t) result
+  module Of_sexp_error : sig
+    type t
+  end
+
+  module Conv_error : sig
+    type t
+  end
+
+  val parse_string : string -> (chunk_to_conv -> 'a) -> ('a res, Conv_error.t) result
   val parse_string_exn : string -> (chunk_to_conv -> 'a) -> 'a res
 
   val conv
     :  parsed_sexp * Positions.t
     -> (chunk_to_conv -> 'a)
     -> ('a res, Of_sexp_error.t) result
-  val conv_exn
-    :  parsed_sexp * Positions.t
-    -> (chunk_to_conv -> 'a)
-    -> 'a res
+
+  val conv_exn : parsed_sexp * Positions.t -> (chunk_to_conv -> 'a) -> 'a res
 
   (** Convenience function for merging parsing and conversion errors.
 
@@ -211,21 +222,22 @@ end
 
 module type Parsexp = sig
   module Positions = Positions
-  module Cst       = Cst
+  module Cst = Cst
 
   module Parse_error : sig
     type t [@@deriving_inline sexp_of]
 
+    include sig
+      [@@@ocaml.warning "-32"]
 
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@ocaml.doc "@inline"]
 
-
-    include
-      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     val position : t -> Positions.pos
-    val message  : t -> string
+    val message : t -> string
 
     (** Report an error in a style similar to OCaml, for instance:
 
@@ -236,36 +248,34 @@ module type Parsexp = sig
     val report : Format.formatter -> filename:string -> t -> unit
   end
 
-  module type Parser       = Parser with module Error := Parse_error
+  module type Parser = Parser with module Error := Parse_error
   module type Eager_parser = Eager_parser
 
   (** Exception raised in case of a parsing error *)
   exception Parse_error of Parse_error.t
 
-  module Single : Parser       with type parsed_value = Sexp.t
-  module Many   : Parser       with type parsed_value = Sexp.t list
-  module Eager  : Eager_parser with type parsed_value = Sexp.t
-
-  module Single_and_positions : Parser       with type parsed_value = Sexp.t * Positions.t
-  module Many_and_positions   : Parser       with type parsed_value = Sexp.t list * Positions.t
-  module Eager_and_positions  : Eager_parser with type parsed_value = Sexp.t * Positions.t
-
-  module Single_just_positions : Parser       with type parsed_value = Positions.t
-  module Many_just_positions   : Parser       with type parsed_value = Positions.t
-  module Eager_just_positions  : Eager_parser with type parsed_value = Positions.t
-
-  module Many_cst  : Parser       with type parsed_value = Cst.t_or_comment list
+  module Single : Parser with type parsed_value = Sexp.t
+  module Many : Parser with type parsed_value = Sexp.t list
+  module Eager : Eager_parser with type parsed_value = Sexp.t
+  module Single_and_positions : Parser with type parsed_value = Sexp.t * Positions.t
+  module Many_and_positions : Parser with type parsed_value = Sexp.t list * Positions.t
+  module Eager_and_positions : Eager_parser with type parsed_value = Sexp.t * Positions.t
+  module Single_just_positions : Parser with type parsed_value = Positions.t
+  module Many_just_positions : Parser with type parsed_value = Positions.t
+  module Eager_just_positions : Eager_parser with type parsed_value = Positions.t
+  module Many_cst : Parser with type parsed_value = Cst.t_or_comment list
   module Eager_cst : Eager_parser with type parsed_value = Cst.t_or_comment
 
   module Of_sexp_error : sig
     type t [@@deriving_inline sexp_of]
 
+    include sig
+      [@@@ocaml.warning "-32"]
 
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@ocaml.doc "@inline"]
 
-
-    include
-      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     (** Exception raised by the user function *)
@@ -286,42 +296,58 @@ module type Parsexp = sig
 
   module Conv_error : sig
     type t =
-      | Parse_error   of Parse_error.t
+      | Parse_error of Parse_error.t
       | Of_sexp_error of Of_sexp_error.t
     [@@deriving_inline sexp_of]
 
+    include sig
+      [@@@ocaml.warning "-32"]
 
+      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    end
+    [@@ocaml.doc "@inline"]
 
-
-    include
-      sig [@@@ocaml.warning "-32"] val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-      end[@@ocaml.doc "@inline"]
     [@@@end]
 
     (** Similar to [Parse_error.report] *)
     val report : Format.formatter -> filename:string -> t -> unit
   end
 
-  module type Conv = Conv
-    with module Parse_error   := Parse_error
+  module type Conv =
+    Conv
+    with module Parse_error := Parse_error
     with module Of_sexp_error := Of_sexp_error
-    with module Conv_error    := Conv_error
+    with module Conv_error := Conv_error
 
   (*_ These type synonyms are introduced because older versions of OCaml
     do not support destructive substitutions with `type 'a t1 = t2`
     or `type t1 = 'a t2`. *)
   type 'a id = 'a
   type sexp_list = Sexp.t list
-  module Conv_single : Conv
+
+  module Conv_single :
+    Conv
     with type 'a res := 'a id
      and type parsed_sexp := Sexp.t
      and type chunk_to_conv := Sexp.t
-  module Conv_many : Conv
+
+  module Conv_many :
+    Conv
     with type 'a res := 'a list
      and type parsed_sexp := sexp_list
      and type chunk_to_conv := Sexp.t
-  module Conv_many_at_once : Conv
+
+  module Conv_many_at_once :
+    Conv
     with type 'a res := 'a id
      and type parsed_sexp := sexp_list
      and type chunk_to_conv := sexp_list
+
+  (*_ For tests *)
+  (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
+
+    https://opensource.janestreet.com/standards/#private-submodules *)
+  module Private : sig
+    module Parser_automaton = Parser_automaton
+  end
 end
