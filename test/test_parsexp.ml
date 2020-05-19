@@ -223,32 +223,32 @@ let%expect_test "regression test (we counted comments as sexps for the purpose o
   [%expect
     {|
     (Error (
-      parser_automaton_internal.ml.Public.Parse_error
-      ((position (
-         (line   1)
-         (col    1)
-         (offset 1)))
-       (message "no s-expression found in input")))) |}];
+      parse_error.ml.Parse_error (
+        (position (
+          (line   1)
+          (col    1)
+          (offset 1)))
+        (message "no s-expression found in input")))) |}];
   test "#||#";
   [%expect
     {|
     (Error (
-      parser_automaton_internal.ml.Public.Parse_error
-      ((position (
-         (line   1)
-         (col    4)
-         (offset 4)))
-       (message "no s-expression found in input")))) |}];
+      parse_error.ml.Parse_error (
+        (position (
+          (line   1)
+          (col    4)
+          (offset 4)))
+        (message "no s-expression found in input")))) |}];
   test "#;#;a b";
   [%expect
     {|
     (Error (
-      parser_automaton_internal.ml.Public.Parse_error
-      ((position (
-         (line   1)
-         (col    7)
-         (offset 7)))
-       (message "no s-expression found in input")))) |}]
+      parse_error.ml.Parse_error (
+        (position (
+          (line   1)
+          (col    7)
+          (offset 7)))
+        (message "no s-expression found in input")))) |}]
 ;;
 
 module Stream = Caml.Stream

@@ -3,7 +3,7 @@
 open Parser_automaton_internal
 
 include Public
-let raise = Parser_automaton_internal.Error.raise
+let raise = Parser_automaton_internal.raise_error
 
 type u'
 type s'

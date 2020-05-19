@@ -61,54 +61,10 @@ module Public : sig
   val sexps_of_stack : stack -> Sexp.t list
   val sexps_cst_of_stack : stack_cst -> Cst.t_or_comment list
 
-  module Error : sig
-    type t [@@deriving_inline sexp_of]
-
-    include sig
-      [@@@ocaml.warning "-32"]
-
-      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-    end
-    [@@ocaml.doc "@inline"]
-
-    [@@@end]
-
-    val position : t -> Positions.pos
-    val message : t -> string
-
-    (**/**)
-
-    (*_ To match the old behavior, the old parser sometimes raised [Failure] and sometimes
-      raised [Parse_error] *)
-    val old_parser_exn : t -> [ `Parse_error | `Failure ]
-  end
-
-  exception Parse_error of Error.t
-
   (**/**)
 
   (*_ Only for converting errors to the old parser errors *)
   val atom_buffer : _ state -> Buffer.t
-
-  module Old_parser_cont_state : sig
-    type t =
-      | Parsing_toplevel_whitespace
-      | Parsing_nested_whitespace
-      | Parsing_atom
-      | Parsing_list
-      | Parsing_sexp_comment
-      | Parsing_block_comment
-    [@@deriving_inline sexp_of]
-
-    include sig
-      [@@@ocaml.warning "-32"]
-
-      val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
-    end
-    [@@ocaml.doc "@inline"]
-
-    [@@@end]
-  end
 
   (*_ For coverate tests *)
   val automaton_state : ('u, 's) state -> int
@@ -116,30 +72,7 @@ end
 
 open Public
 
-module Error : sig
-  include module type of struct
-    include Error
-  end
-
-  module Reason : sig
-    type t =
-      | Unexpected_char_parsing_hex_escape
-      | Unexpected_char_parsing_dec_escape
-      | Unterminated_quoted_string
-      | Unterminated_block_comment
-      | Escape_sequence_out_of_range
-      | Unclosed_paren
-      | Too_many_sexps
-      | Closed_paren_without_opened
-      | Comment_token_in_unquoted_atom
-      | Sexp_comment_without_sexp
-      | Unexpected_character_after_cr
-      | No_sexp_found_in_input
-      | Automaton_in_error_state
-  end
-
-  val raise : _ state -> at_eof:bool -> Reason.t -> _
-end
+val raise_error : _ state -> at_eof:bool -> Parse_error.Private.Reason.t -> _
 
 type context =
   | Sexp_comment

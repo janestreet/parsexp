@@ -126,7 +126,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
   let parsexp =
     match parse_string str with
     | sexp -> Ok sexp
-    | exception A.Parse_error error -> Error error
+    | exception Parse_error.Parse_error error -> Error error
   in
   let matches_expected =
     match parsexp, expected with
@@ -142,7 +142,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
       Sexp.pp_hum
       [%sexp (expected : Sexp.t result)]
       Sexp.pp_hum
-      [%sexp (parsexp : (Sexp.t, A.Error.t) Result.t)];
+      [%sexp (parsexp : (Sexp.t, Parse_error.t) Result.t)];
   let sexplib =
     match Sexplib.Sexp.of_string str with
     | sexp -> Ok sexp
@@ -160,7 +160,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
       "parsexp and sexplib disagree:@.input:    %S@.parsexp:  %a@.sexplib:  %a@.@."
       str
       Sexp.pp_hum
-      [%sexp (parsexp : (Sexp.t, A.Error.t) Result.t)]
+      [%sexp (parsexp : (Sexp.t, Parse_error.t) Result.t)]
       Sexp.pp_hum
       [%sexp (sexplib : (Sexp.t, exn) Result.t)];
   let sexplib_lexer =
@@ -183,7 +183,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
   let parsexp =
     match parse_string_many str with
     | sexps -> Ok sexps
-    | exception A.Parse_error error -> Error error
+    | exception Parse_error.Parse_error error -> Error error
   in
   let matches_expected =
     match parsexp, expected with
@@ -199,7 +199,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
       Sexp.pp_hum
       [%sexp (expected : Sexp.t list result)]
       Sexp.pp_hum
-      [%sexp (parsexp : (Sexp.t list, A.Error.t) Result.t)];
+      [%sexp (parsexp : (Sexp.t list, Parse_error.t) Result.t)];
   let sexplib =
     match sexplib_sexps_of_string str with
     | sexps -> Ok sexps

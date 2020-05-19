@@ -4,6 +4,6 @@ module Ppx_sexp_conv_lib = struct
   module Sexp = Sexplib0.Sexp
 end
 
-include Ppx_sexp_conv_lib
+module Sexp = Sexplib0.Sexp
 include Sexplib0.Sexp_conv
 module List = ListLabels

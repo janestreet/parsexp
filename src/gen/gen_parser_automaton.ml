@@ -34,7 +34,7 @@ let gen_code oc (t : t) =
   pr "open Parser_automaton_internal";
   pr "";
   pr "include Public";
-  pr "let raise = Parser_automaton_internal.Error.raise";
+  pr "let raise = Parser_automaton_internal.raise_error";
   pr "";
   pr "type u'";
   pr "type s'";
