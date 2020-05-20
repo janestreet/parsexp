@@ -32,7 +32,7 @@ module type Parsexp = sig
   module Many_cst : Parser with type parsed_value = Cst.t_or_comment list
   module Eager_cst : Eager_parser with type parsed_value = Cst.t_or_comment
 
-  (*_ These type synonyms are introduced because older versions of OCaml
+  (*_ These type synonyms are introduced because ocaml <4.06
     do not support destructive substitutions with `type 'a t1 = t2`
     or `type t1 = 'a t2`. *)
   type 'a id = 'a
