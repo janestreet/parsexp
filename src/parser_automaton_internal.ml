@@ -1,31 +1,6 @@
 open! Import
 
 module Public = struct
-  type stack =
-    | Empty
-    | Open of stack
-    | Sexp of Sexp.t * stack
-
-  let empty_stack = Empty
-
-  type stack_cst =
-    (* at top-level *)
-    | Empty
-    (* after the given sexp or comment *)
-    | T_or_comment of Cst.t_or_comment * stack_cst
-    (* after the opening paren *)
-    | Open of Positions.pos * stack_cst
-    (* Similar to [ignoring] below, In_sexp_comment only indicates if the next
-       s-expression is to be commented out, but if we are nested below parens below an
-       sexp comment, the stack would look like [Open (.., In_sexp_comment ..)]. *)
-    | In_sexp_comment of
-        { hash_semi_pos : Positions.pos
-        ; rev_comments : Cst.comment list
-        ; stack : stack_cst
-        }
-
-  let empty_stack_cst = Empty
-
   type state_cst =
     { token_buffer : Buffer.t
     ; (* Starting positions of the current token *)
@@ -34,9 +9,9 @@ module Public = struct
 
   type ('u, 's) kind =
     | Positions : (Positions.Builder.t, unit) kind
-    | Sexp : (unit, stack) kind
-    | Sexp_with_positions : (Positions.Builder.t, stack) kind
-    | Cst : (state_cst, stack_cst) kind
+    | Sexp : (unit, Automaton_stack.t) kind
+    | Sexp_with_positions : (Positions.Builder.t, Automaton_stack.t) kind
+    | Cst : (state_cst, Automaton_stack.For_cst.t) kind
 
   type ('u, 's) state =
     { mutable automaton_state : int
@@ -150,30 +125,6 @@ module Public = struct
   let set_error_state state = state.automaton_state <- error_state
 
   module Error = Parse_error
-
-  let sexp_of_stack : stack -> Sexp.t = function
-    | Sexp (sexp, Empty) -> sexp
-    | _ -> failwith "Parser_automaton.sexp_of_stack"
-  ;;
-
-  let sexps_of_stack =
-    let rec loop acc : stack -> Sexp.t list = function
-      | Empty -> acc
-      | Open _ -> failwith "Parser_automaton.sexps_of_stack"
-      | Sexp (sexp, stack) -> loop (sexp :: acc) stack
-    in
-    fun stack -> loop [] stack
-  ;;
-
-  let sexps_cst_of_stack =
-    let rec loop acc (stack : stack_cst) =
-      match stack with
-      | Empty -> acc
-      | T_or_comment (t, stack) -> loop (t :: acc) stack
-      | Open _ | In_sexp_comment _ -> failwith "Parser_automaton.sexps_cst_of_stack"
-    in
-    fun stack -> loop [] stack
-  ;;
 
   let automaton_state state = state.automaton_state
 end
@@ -446,34 +397,39 @@ let sexp_added : type u s. (u, s) state -> s -> delta:int -> s =
   else stack
 ;;
 
-let rec make_list acc : stack -> stack = function
+let rec make_list acc : Automaton_stack.t -> Automaton_stack.t = function
   | Empty -> assert false
   | Open stack -> Sexp (List acc, stack)
   | Sexp (sexp, stack) -> make_list (sexp :: acc) stack
 ;;
 
-let add_comment_to_stack_cst comment (stack : stack_cst) : stack_cst =
+let add_comment_to_stack_cst comment (stack : Automaton_stack.For_cst.t)
+  : Automaton_stack.For_cst.t
+  =
   match stack with
   | In_sexp_comment r ->
     In_sexp_comment { r with rev_comments = comment :: r.rev_comments }
   | _ -> T_or_comment (Comment comment, stack)
 ;;
 
-let add_sexp_to_stack_cst sexp : stack_cst -> stack_cst = function
-  | In_sexp_comment { hash_semi_pos; rev_comments; stack } ->
-    let comment : Cst.comment =
-      Sexp_comment { hash_semi_pos; comments = List.rev rev_comments; sexp }
-    in
-    add_comment_to_stack_cst comment stack
-  | stack -> T_or_comment (Sexp sexp, stack)
+let add_sexp_to_stack_cst sexp : Automaton_stack.For_cst.t -> Automaton_stack.For_cst.t
+  = function
+    | In_sexp_comment { hash_semi_pos; rev_comments; stack } ->
+      let comment : Cst.comment =
+        Sexp_comment { hash_semi_pos; comments = List.rev rev_comments; sexp }
+      in
+      add_comment_to_stack_cst comment stack
+    | stack -> T_or_comment (Sexp sexp, stack)
 ;;
 
-let rec make_list_cst end_pos acc : stack_cst -> stack_cst = function
-  | T_or_comment (t, stack) -> make_list_cst end_pos (t :: acc) stack
-  | Open (start_pos, stack) ->
-    let sexp : Cst.t = List { loc = { start_pos; end_pos }; elements = acc } in
-    add_sexp_to_stack_cst sexp stack
-  | Empty | In_sexp_comment _ -> assert false
+let rec make_list_cst end_pos acc
+  : Automaton_stack.For_cst.t -> Automaton_stack.For_cst.t
+  = function
+    | T_or_comment (t, stack) -> make_list_cst end_pos (t :: acc) stack
+    | Open (start_pos, stack) ->
+      let sexp : Cst.t = List { loc = { start_pos; end_pos }; elements = acc } in
+      add_sexp_to_stack_cst sexp stack
+    | Empty | In_sexp_comment _ -> assert false
 ;;
 
 let closing : type u s. (u, s) state -> char -> s -> s =

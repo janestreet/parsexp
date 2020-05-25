@@ -1,32 +1,20 @@
 open! Import
-
-module type Params = Parser_intf.Params
-module type Params_eager = Parser_intf.Params_eager
-module type S = Parser_intf.S
-module type S_eager = Parser_intf.S_eager
-module type Stack = Parser_intf.Stack
-module type State = Parser_intf.State
-
-module A = Parser_automaton
+include Parser_intf
 
 
-module Make (Params : Params) :
+module Make (Kind : Kind.S) (Mode : Mode(Kind).S) :
   S
-  with type parsed_value = Params.parsed_value
-  with type State.t = (Params.state, Params.stack) A.state
-  with type Stack.t = Params.stack = struct
-  type parsed_value = Params.parsed_value
+  with type parsed_value = Mode.parsed_value
+  with type State.t = (Kind.state, Kind.Stack.t) A.state
+  with module Stack = Kind.Stack = struct
+  type parsed_value = Mode.parsed_value
 
-  module Stack = struct
-    type t = Params.stack
-
-    let empty = Params.empty
-  end
+  module Stack = Kind.Stack
 
   module State = struct
-    type t = (Params.state, Stack.t) A.state
+    type t = (Kind.state, Kind.Stack.t) A.state
 
-    let create ?pos () = A.new_state ?initial_pos:pos Params.mode Params.kind
+    let create ?pos () = A.new_state ?initial_pos:pos Mode.mode Kind.kind
     let reset = A.reset
     let offset = A.offset
     let line = A.line
@@ -36,7 +24,7 @@ module Make (Params : Params) :
   end
 
   let feed = A.feed
-  let feed_eoi state stack = Params.make_value state (A.feed_eoi state stack)
+  let feed_eoi state stack = Mode.make_value state (A.feed_eoi state stack)
   let feed_substring = Automaton_helpers.feed_substring
   let feed_string = Automaton_helpers.feed_string
   let feed_subbytes = Automaton_helpers.feed_subbytes
@@ -44,7 +32,7 @@ module Make (Params : Params) :
 
   let parse_string_exn str =
     let state = State.create () in
-    feed_eoi state (feed_string state str Stack.empty)
+    feed_eoi state (feed_string state str Kind.Stack.empty)
   ;;
 
   let parse_string str =
@@ -54,22 +42,18 @@ module Make (Params : Params) :
   ;;
 end
 
-module Make_eager (Params : Params_eager) :
+module Make_eager (Kind : Kind.S) (Mode : Mode_eager(Kind).S) :
   S_eager
-  with type parsed_value = Params.parsed_value
-  with type State.t = (Params.state, Params.stack) A.state
-  with type Stack.t = Params.stack = struct
-  type parsed_value = Params.parsed_value
+  with type parsed_value = Mode.parsed_value
+  with type State.t = (Kind.state, Kind.Stack.t) A.state
+  with module Stack = Kind.Stack = struct
+  type parsed_value = Mode.parsed_value
 
-  module Stack = struct
-    type t = Params.stack
-
-    let empty = Params.empty
-  end
+  module Stack = Kind.Stack
 
   module State = struct
     module Read_only = struct
-      type t = (Params.state, Stack.t) A.state
+      type t = (Kind.state, Kind.Stack.t) A.state
 
       let offset = A.offset
       let line = A.line
@@ -84,11 +68,11 @@ module Make_eager (Params : Params_eager) :
 
     let create ?pos ?(no_sexp_is_error = false) f =
       let got_sexp state stack =
-        let parsed_value = Params.make_value state stack in
+        let parsed_value = Mode.make_value state stack in
         f state parsed_value;
-        Params.empty
+        Stack.empty
       in
-      A.new_state ?initial_pos:pos (Eager { got_sexp; no_sexp_is_error }) Params.kind
+      A.new_state ?initial_pos:pos (Eager { got_sexp; no_sexp_is_error }) Kind.kind
     ;;
 
     let reset = A.reset

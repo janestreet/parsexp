@@ -2,6 +2,7 @@ include Base
 include Stdio
 include Expect_test_helpers_core
 include Parsexp
+module Automaton_stack = Private.Automaton_stack
 
 let dummy_sexplib_error () =
   (* a hack to raise an arbitrary Parse_error *)

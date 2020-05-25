@@ -32,12 +32,7 @@ module type State = sig
   val stop : t -> unit
 end
 
-module type Stack = sig
-  (** Parser stack. The stack is not in [state] for optimization purposes. *)
-  type t
-
-  val empty : t
-end
+module type Stack = Kind.Stack
 
 module type S = sig
   (** Values produced by the parser *)
@@ -165,37 +160,35 @@ module type S_eager = sig
   end
 end
 
-module type Params = sig
-  type parsed_value
-  type state
-  type stack
+module Mode (Kind : Kind.S) = struct
+  module type S = sig
+    type parsed_value
 
-  val kind : (state, stack) A.kind
-  val mode : (state, stack) A.mode
-  val empty : stack
-  val make_value : (state, stack) A.state -> stack -> parsed_value
+    val mode : (Kind.state, Kind.Stack.t) A.mode
+    val make_value : (Kind.state, Kind.Stack.t) A.state -> Kind.Stack.t -> parsed_value
+  end
 end
 
-module type Params_eager = sig
-  type parsed_value
-  type state
-  type stack
+module Mode_eager (Kind : Kind.S) = struct
+  module type S = sig
+    type parsed_value
 
-  val kind : (state, stack) A.kind
-  val empty : stack
-  val make_value : (state, stack) A.state -> stack -> parsed_value
+    val make_value : (Kind.state, Kind.Stack.t) A.state -> Kind.Stack.t -> parsed_value
+  end
 end
 
 module type Parser = sig
-  module type Params = Params
-  module type Params_eager = Params_eager
+  module Mode = Mode
+  module Mode_eager = Mode_eager
+
   module type S = S
   module type S_eager = S_eager
   module type Stack = Stack
   module type State = State
 
-  module Make (Params : Params) : S with type parsed_value = Params.parsed_value
+  module Make (Kind : Kind.S) (Mode : Mode(Kind).S) :
+    S with type parsed_value = Mode.parsed_value
 
-  module Make_eager (Params : Params_eager) :
-    S_eager with type parsed_value = Params.parsed_value
+  module Make_eager (Kind : Kind.S) (Mode : Mode_eager(Kind).S) :
+    S_eager with type parsed_value = Mode.parsed_value
 end

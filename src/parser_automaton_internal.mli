@@ -19,21 +19,14 @@ module Public : sig
         ; mutable no_sexp_is_error : bool
         } (** Gives back s-expressions as soon as they are found. *)
 
-  type stack
-
-  val empty_stack : stack
-
   type state_cst
-  type stack_cst
-
-  val empty_stack_cst : stack_cst
 
   type ('u, 's) kind =
     (*_ [Positions] case needs no stack because the [state] type keeps track of [depth]. *)
     | Positions : (Positions.Builder.t, unit) kind
-    | Sexp : (unit, stack) kind
-    | Sexp_with_positions : (Positions.Builder.t, stack) kind
-    | Cst : (state_cst, stack_cst) kind
+    | Sexp : (unit, Automaton_stack.t) kind
+    | Sexp_with_positions : (Positions.Builder.t, Automaton_stack.t) kind
+    | Cst : (state_cst, Automaton_stack.For_cst.t) kind
 
   val new_state
     :  ?initial_pos:Positions.pos
@@ -57,9 +50,6 @@ module Public : sig
   val has_unclosed_paren : ('u, 's) state -> bool
 
   val set_error_state : _ state -> unit
-  val sexp_of_stack : stack -> Sexp.t
-  val sexps_of_stack : stack -> Sexp.t list
-  val sexps_cst_of_stack : stack_cst -> Cst.t_or_comment list
 
   (**/**)
 

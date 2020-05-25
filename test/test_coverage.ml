@@ -114,11 +114,11 @@ let parse_string_gen mode s =
       let stack = feed state s.[pos] stack in
       loop (pos + 1) stack)
   in
-  loop 0 A.empty_stack
+  loop 0 Automaton_stack.empty
 ;;
 
-let parse_string s = A.sexp_of_stack (parse_string_gen Single s)
-let parse_string_many s = A.sexps_of_stack (parse_string_gen Many s)
+let parse_string s = Automaton_stack.get_single (parse_string_gen Single s)
+let parse_string_many s = Automaton_stack.get_many (parse_string_gen Many s)
 let cases_where_sexplib_disagree_with_itself = ref []
 let add_to_list cell x = cell := x :: !cell
 
@@ -569,18 +569,18 @@ let%expect_test "coverage" =
   (* Transition after an error *)
   let after_error () =
     let state = A.new_state Many Sexp in
-    match feed state ')' A.empty_stack with
-    | (_ : A.stack) -> assert false
+    match feed state ')' Automaton_stack.empty with
+    | (_ : Automaton_stack.t) -> assert false
     | exception _ -> state
   in
   List.iter Char.all ~f:(fun c ->
     let state = after_error () in
-    match feed state c A.empty_stack with
-    | (_ : A.stack) -> assert false
+    match feed state c Automaton_stack.empty with
+    | (_ : Automaton_stack.t) -> assert false
     | exception _ -> ());
   (let state = after_error () in
-   match feed_eoi state A.empty_stack with
-   | (_ : A.stack) -> assert false
+   match feed_eoi state Automaton_stack.empty with
+   | (_ : Automaton_stack.t) -> assert false
    | exception _ -> ());
   for state = 0 to State.count - 1 do
     for cl = 0 to Char_class.count - 1 do

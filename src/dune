@@ -6,7 +6,3 @@
 
 (rule (targets bytes0.ml) (deps (:first_dep gen/gen_bytes0.exe))
  (action (bash "./%{first_dep} > %{targets}")))
-
-(rule (targets parser_automaton.ml)
- (deps (:first_dep gen/gen_parser_automaton.exe))
- (action (bash "./%{first_dep} > %{targets}")) (mode fallback))

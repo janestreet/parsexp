@@ -53,8 +53,9 @@ let test_cont_state input =
     let open Private.Parser_automaton in
     let state = new_state Single Sexp in
     ignore
-      (String.fold input ~init:empty_stack ~f:(fun stack ch -> feed state ch stack)
-       : stack);
+      (String.fold input ~init:Automaton_stack.empty ~f:(fun stack ch ->
+         feed state ch stack)
+       : Automaton_stack.t);
     let old_state = old_parser_cont_state state in
     [%sexp Cont (old_state : Old_parser_cont_state.t)]
   in
