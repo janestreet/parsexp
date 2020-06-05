@@ -1,10 +1,35 @@
 open! Import
+include Automaton_state
+
+let feed (type u s) (state : (u, s) Automaton_state.t) char (stack : s) : s =
+  let idx = (automaton_state state lsl 8) lor Char.code char in
+  Automaton_tables.transitions.(idx).f state char stack
+[@@inline always]
+;;
+
+let feed_eoi (type u s) (state : (u, s) Automaton_state.t) (stack : s) : s =
+  let stack = Automaton_tables.transitions_eoi.(automaton_state state).f state stack in
+  set_error_state state;
+  stack
+;;
+
+let old_parser_cont_state state : Old_parser_cont_state.t =
+  match context state with
+  | Sexp_comment -> Parsing_sexp_comment
+  | Sexp ->
+    (match
+       ( Automaton_tables.old_parser_approx_cont_states.(automaton_state state)
+       , has_unclosed_paren state )
+     with
+     | Parsing_toplevel_whitespace, true -> Parsing_list
+     | s, _ -> s)
+;;
 
 let rec feed_substring_unsafe str state stack i stop =
   if i < stop
   then (
     let c = String.unsafe_get str i in
-    let stack = Parser_automaton.feed state c stack in
+    let stack = feed state c stack in
     feed_substring_unsafe str state stack (i + 1) stop)
   else stack
 ;;
@@ -13,7 +38,7 @@ let rec feed_subbytes_unsafe str state stack i stop =
   if i < stop
   then (
     let c = Bytes.unsafe_get str i in
-    let stack = Parser_automaton.feed state c stack in
+    let stack = feed state c stack in
     feed_subbytes_unsafe str state stack (i + 1) stop)
   else stack
 ;;

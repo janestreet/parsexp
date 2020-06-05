@@ -82,7 +82,7 @@ module Char_class = struct
   ;;
 end
 
-module A = Private.Parser_automaton
+module A = Private.Automaton
 
 type 'a result =
   | Sexp of 'a

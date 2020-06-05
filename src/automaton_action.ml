@@ -1,137 +1,8 @@
 open! Import
+open Automaton_state
+open State
 
-module Public = struct
-  type state_cst =
-    { token_buffer : Buffer.t
-    ; (* Starting positions of the current token *)
-      mutable token_start_pos : Positions.pos
-    }
-
-  type ('u, 's) kind =
-    | Positions : (Positions.Builder.t, unit) kind
-    | Sexp : (unit, Automaton_stack.t) kind
-    | Sexp_with_positions : (Positions.Builder.t, Automaton_stack.t) kind
-    | Cst : (state_cst, Automaton_stack.For_cst.t) kind
-
-  type ('u, 's) state =
-    { mutable automaton_state : int
-    ; kind : ('u, 's) kind
-    ; mutable depth : int
-    ; (* Number of opened #| when parsing a block comment *)
-      mutable block_comment_depth : int
-    ; (* Stack of ignoring depths; the current depth is pushed
-         each time a #; comment is entered. *)
-      mutable ignoring_stack : int list
-    ; (* When parsing an escape sequence of the form "\\NNN" or "\\XX", this accumulates
-         the computed number *)
-      mutable escaped_value : int
-    ; (* Buffer for accumulating atoms *)
-      atom_buffer : Buffer.t
-    ; user_state : 'u
-    ; mode : ('u, 's) mode
-    ; mutable full_sexps : int
-    ; mutable offset : int (* global offset *)
-    ; mutable line_number : int
-    ; mutable bol_offset : int (* offset of beginning of line *)
-    }
-
-  and ('u, 's) mode =
-    | Single
-    | Many
-    | Eager of
-        { got_sexp : ('u, 's) state -> 's -> 's
-        ; mutable no_sexp_is_error : bool
-        }
-
-  let initial_user_state : type u s. (u, s) kind -> Positions.pos -> u =
-    fun kind initial_pos ->
-    match kind with
-    | Positions -> Positions.Builder.create ~initial_pos ()
-    | Sexp -> ()
-    | Sexp_with_positions -> Positions.Builder.create ~initial_pos ()
-    | Cst ->
-      (* [token_start_pos] is set to a dummy location here. It is properly set when we
-         start to capture a token from the input *)
-      { token_buffer = Buffer.create 128; token_start_pos = Positions.beginning_of_file }
-  ;;
-
-  (* these magic numbers are checked in gen_parser_automaton.ml:
-     let () = assert (initial = 0)
-     let () = assert (to_int Error = 1) *)
-  let initial_state = 0
-  let error_state = 1
-
-  let new_state ?(initial_pos = Positions.beginning_of_file) mode kind =
-    { kind
-    ; depth = 0
-    ; automaton_state = initial_state
-    ; block_comment_depth = 0
-    ; ignoring_stack = []
-    ; escaped_value = 0
-    ; atom_buffer = Buffer.create 128
-    ; user_state = initial_user_state kind initial_pos
-    ; mode
-    ; full_sexps = 0
-    ; offset = initial_pos.offset
-    ; line_number = initial_pos.line
-    ; bol_offset = initial_pos.offset - initial_pos.col
-    }
-  ;;
-
-  let mode t = t.mode
-  let positions t = Positions.Builder.contents t.user_state
-  let atom_buffer t = t.atom_buffer
-  let offset state = state.offset
-  let line state = state.line_number
-  let column state = state.offset - state.bol_offset
-  let position t = { Positions.col = column t; line = line t; offset = offset t }
-
-  let reset_user_state : type u s. (u, s) state -> unit =
-    fun t ->
-    match t.kind with
-    | Positions -> Positions.Builder.reset t.user_state (position t)
-    | Sexp -> ()
-    | Sexp_with_positions -> Positions.Builder.reset t.user_state (position t)
-    | Cst -> Buffer.clear t.user_state.token_buffer
-  ;;
-
-  let reset ?(pos = Positions.beginning_of_file) t =
-    t.depth <- 0;
-    t.automaton_state <- initial_state;
-    t.block_comment_depth <- 0;
-    t.ignoring_stack <- [];
-    t.escaped_value <- 0;
-    t.full_sexps <- 0;
-    t.offset <- pos.offset;
-    t.line_number <- pos.line;
-    t.bol_offset <- pos.offset - pos.col;
-    reset_user_state t;
-    Buffer.clear t.atom_buffer
-  ;;
-
-  type context =
-    | Sexp_comment
-    | Sexp
-
-  let is_ignoring state =
-    match state.ignoring_stack with
-    | _ :: _ -> true
-    | [] -> false
-  ;;
-
-  let is_not_ignoring state = not (is_ignoring state)
-  let context state = if is_not_ignoring state then Sexp else Sexp_comment
-  let has_unclosed_paren state = state.depth > 0
-  let set_error_state state = state.automaton_state <- error_state
-
-  module Error = Parse_error
-
-  let automaton_state state = state.automaton_state
-end
-
-open Public
-
-let raise_error : type a b. (a, b) state -> _ =
+let raise_error : type a b. (a, b) Automaton_state.t -> _ =
   fun state ~at_eof reason ->
   set_error_state state;
   Parse_error.Private.raise
@@ -144,14 +15,25 @@ let raise_error : type a b. (a, b) state -> _ =
     ~atom_buffer:state.atom_buffer
 ;;
 
-type nonrec context = context =
+type nonrec context = Automaton_state.Context.t =
   | Sexp_comment
   | Sexp
 
-let context = context
+let context = Automaton_state.context
 
-type ('u, 's) action = ('u, 's) state -> char -> 's -> 's
-type ('u, 's) epsilon_action = ('u, 's) state -> 's -> 's
+type ('u, 's) t = ('u, 's) Automaton_state.t -> char -> 's -> 's
+
+module Poly = struct
+  type nonrec t = { f : 'u 's. ('u, 's) t } [@@unboxed]
+end
+
+module Epsilon = struct
+  type ('u, 's) t = ('u, 's) Automaton_state.t -> 's -> 's
+
+  module Poly = struct
+    type nonrec t = { f : 'u 's. ('u, 's) t } [@@unboxed]
+  end
+end
 
 let current_pos ?(delta = 0) state : Positions.pos =
   let offset = state.offset + delta in
@@ -161,7 +43,7 @@ let current_pos ?(delta = 0) state : Positions.pos =
 let set_automaton_state state x = state.automaton_state <- x
 let advance state = state.offset <- state.offset + 1
 
-let advance_eol : type u s. (u, s) state -> unit =
+let advance_eol : type u s. (u, s) Automaton_state.t -> unit =
   fun state ->
   let newline_offset = state.offset in
   state.offset <- newline_offset + 1;
@@ -176,7 +58,7 @@ let advance_eol : type u s. (u, s) state -> unit =
 
 let block_comment_depth state = state.block_comment_depth
 
-let add_token_char : type u s. (u, s) action =
+let add_token_char : type u s. (u, s) t =
   fun state char stack ->
   match state.kind with
   | Cst ->
@@ -195,6 +77,14 @@ let add_quoted_atom_char state c stack =
   add_token_char state c stack
 ;;
 
+let is_ignoring state =
+  match context state with
+  | Sexp -> false
+  | Sexp_comment -> true
+;;
+
+let is_not_ignoring state = not (is_ignoring state)
+
 let check_new_sexp_allowed state =
   let is_single =
     match state.mode with
@@ -209,7 +99,7 @@ let add_pos state ~delta =
   Positions.Builder.add state.user_state ~offset:(state.offset + delta)
 ;;
 
-let add_first_char : type u s. (u, s) action =
+let add_first_char : type u s. (u, s) t =
   fun state char stack ->
   check_new_sexp_allowed state;
   Buffer.add_char state.atom_buffer char;
@@ -221,14 +111,14 @@ let add_first_char : type u s. (u, s) action =
   stack
 ;;
 
-let eps_add_first_char_hash : type u s. (u, s) epsilon_action =
+let eps_add_first_char_hash : type u s. (u, s) Epsilon.t =
   fun state stack ->
   check_new_sexp_allowed state;
   Buffer.add_char state.atom_buffer '#';
   stack
 ;;
 
-let start_quoted_string : type u s. (u, s) action =
+let start_quoted_string : type u s. (u, s) t =
   fun state _char stack ->
   check_new_sexp_allowed state;
   match state.kind with
@@ -307,7 +197,7 @@ let add_last_hex_escape_char state c stack =
   add_token_char state c stack
 ;;
 
-let opening : type u s. (u, s) state -> char -> s -> s =
+let opening : type u s. (u, s) Automaton_state.t -> char -> s -> s =
   fun state _char stack ->
   check_new_sexp_allowed state;
   state.depth <- state.depth + 1;
@@ -334,7 +224,7 @@ let do_reset_positions state =
     }
 ;;
 
-let reset_positions : type u s. (u, s) state -> unit =
+let reset_positions : type u s. (u, s) Automaton_state.t -> unit =
   fun state ->
   match state.kind with
   | Positions -> do_reset_positions state
@@ -381,7 +271,7 @@ let maybe_pop_ignoring_stack state =
   | _ -> false
 ;;
 
-let sexp_added : type u s. (u, s) state -> s -> delta:int -> s =
+let sexp_added : type u s. (u, s) Automaton_state.t -> s -> delta:int -> s =
   fun state stack ~delta ->
   let is_comment = maybe_pop_ignoring_stack state in
   if is_top_level state
@@ -432,7 +322,7 @@ let rec make_list_cst end_pos acc
     | Empty | In_sexp_comment _ -> assert false
 ;;
 
-let closing : type u s. (u, s) state -> char -> s -> s =
+let closing : type u s. (u, s) Automaton_state.t -> char -> s -> s =
   fun state _char stack ->
   if state.depth > 0
   then (
@@ -458,7 +348,9 @@ let closing : type u s. (u, s) state -> char -> s -> s =
   else raise_error state ~at_eof:false Closed_paren_without_opened
 ;;
 
-let make_loc ?(delta = 0) state : Positions.range =
+let make_loc ?(delta = 0) (state : (Automaton_state.For_cst.t, _) Automaton_state.t)
+  : Positions.range
+  =
   { start_pos = state.user_state.token_start_pos; end_pos = current_pos state ~delta }
 ;;
 
@@ -473,7 +365,7 @@ let add_non_quoted_atom_pos state ~atom =
     add_pos state ~delta:(-1))
 ;;
 
-let eps_push_atom : type u s. (u, s) epsilon_action =
+let eps_push_atom : type u s. (u, s) Epsilon.t =
   fun state stack ->
   let str = Buffer.contents state.atom_buffer in
   Buffer.clear state.atom_buffer;
@@ -501,7 +393,7 @@ let eps_push_atom : type u s. (u, s) epsilon_action =
   sexp_added state stack ~delta:0
 ;;
 
-let push_quoted_atom : type u s. (u, s) action =
+let push_quoted_atom : type u s. (u, s) t =
   fun state _char stack ->
   let str = Buffer.contents state.atom_buffer in
   Buffer.clear state.atom_buffer;
@@ -530,7 +422,7 @@ let push_quoted_atom : type u s. (u, s) action =
   sexp_added state stack ~delta:1
 ;;
 
-let start_sexp_comment : type u s. (u, s) action =
+let start_sexp_comment : type u s. (u, s) t =
   fun state _char stack ->
   state.ignoring_stack <- state.depth :: state.ignoring_stack;
   match state.kind with
@@ -540,7 +432,7 @@ let start_sexp_comment : type u s. (u, s) action =
   | _ -> stack
 ;;
 
-let start_block_comment : type u s. (u, s) state -> char -> s -> s =
+let start_block_comment : type u s. (u, s) Automaton_state.t -> char -> s -> s =
   fun state char stack ->
   state.block_comment_depth <- state.block_comment_depth + 1;
   match state.kind with
@@ -556,7 +448,7 @@ let start_block_comment : type u s. (u, s) state -> char -> s -> s =
     stack
 ;;
 
-let end_block_comment : type u s. (u, s) state -> char -> s -> s =
+let end_block_comment : type u s. (u, s) Automaton_state.t -> char -> s -> s =
   fun state char stack ->
   state.block_comment_depth <- state.block_comment_depth - 1;
   match state.kind with
@@ -578,7 +470,7 @@ let end_block_comment : type u s. (u, s) state -> char -> s -> s =
     else stack
 ;;
 
-let start_line_comment : type u s. (u, s) action =
+let start_line_comment : type u s. (u, s) t =
   fun state char stack ->
   match state.kind with
   | Cst ->
@@ -588,7 +480,7 @@ let start_line_comment : type u s. (u, s) action =
   | _ -> stack
 ;;
 
-let end_line_comment : type u s. (u, s) epsilon_action =
+let end_line_comment : type u s. (u, s) Epsilon.t =
   fun state stack ->
   match state.kind with
   | Positions -> stack
@@ -603,7 +495,7 @@ let end_line_comment : type u s. (u, s) epsilon_action =
     comment_added_assuming_cst state stack ~delta:0
 ;;
 
-let eps_eoi_check : type u s. (u, s) epsilon_action =
+let eps_eoi_check : type u s. (u, s) Epsilon.t =
   fun state stack ->
   if state.depth > 0 then raise_error state ~at_eof:true Unclosed_paren;
   if is_ignoring state then raise_error state ~at_eof:true Sexp_comment_without_sexp;

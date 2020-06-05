@@ -32,54 +32,56 @@ let ordered_ids tbl =
 ;;
 
 let print_named_transition (id, tr) =
-  match (tr : Automaton.Table.transition Automaton.Table.or_error) with
-  | Error error ->
-    pr "let tr_%02d _state _char _stack =" id;
-    pr "  raise _state ~at_eof:false %s" (Automaton.Error.to_string error)
-  | Ok { action = eps_actions, action; goto; advance } ->
-    let eps_actions =
-      List.filter_map ~f:Automaton.Epsilon_action.to_runtime_function eps_actions
-    in
-    let action = Automaton.Action.to_runtime_function action in
-    pr
-      "let tr_%02d state %schar stack ="
-      id
-      (if Option.is_none action
-       && not ([%compare.equal: Automaton.Table.goto_state] goto End_block_comment)
-       then "_"
-       else "");
-    List.iter eps_actions ~f:(pr "  let stack = %s state stack in");
-    (match action with
-     | None -> ()
-     | Some s -> pr "  let stack = %s state char stack in" s);
-    (match goto with
-     | State n -> pr "  set_automaton_state state %d;" n
-     | End_block_comment ->
-       pr "  let stack = end_block_comment state char stack in";
-       pr
-         "  set_automaton_state state (if block_comment_depth state <> 0 then %d else %d);"
-         (Automaton.State.to_int (Block_comment Normal))
-         (Automaton.State.to_int Whitespace));
-    pr
-      "  %s state;"
-      (match advance with
-       | Advance -> "advance"
-       | Advance_eol -> "advance_eol");
-    pr "  stack"
+  (match (tr : Automaton.Table.transition Automaton.Table.or_error) with
+   | Error error ->
+     pr "let tr_%02d_f _state _char _stack =" id;
+     pr "  raise _state ~at_eof:false %s" (Automaton.Error.to_string error)
+   | Ok { action = eps_actions, action; goto; advance } ->
+     let eps_actions =
+       List.filter_map ~f:Automaton.Epsilon_action.to_runtime_function eps_actions
+     in
+     let action = Automaton.Action.to_runtime_function action in
+     pr
+       "let tr_%02d_f state %schar stack ="
+       id
+       (if Option.is_none action
+        && not ([%compare.equal: Automaton.Table.goto_state] goto End_block_comment)
+        then "_"
+        else "");
+     List.iter eps_actions ~f:(pr "  let stack = %s state stack in");
+     (match action with
+      | None -> ()
+      | Some s -> pr "  let stack = %s state char stack in" s);
+     (match goto with
+      | State n -> pr "  set_automaton_state state %d;" n
+      | End_block_comment ->
+        pr "  let stack = end_block_comment state char stack in";
+        pr
+          "  set_automaton_state state (if block_comment_depth state <> 0 then %d else %d);"
+          (Automaton.State.to_int (Block_comment Normal))
+          (Automaton.State.to_int Whitespace));
+     pr
+       "  %s state;"
+       (match advance with
+        | Advance -> "advance"
+        | Advance_eol -> "advance_eol");
+     pr "  stack");
+  pr "let tr_%02d : Automaton_action.Poly.t = { f = tr_%02d_f }" id id
 ;;
 
 let print_named_transition_eoi (id, tr) =
-  match (tr : Automaton.Epsilon_action.t list Automaton.Table.or_error) with
-  | Error error ->
-    pr "let tr_eoi_%02d state _stack =" id;
-    pr "  raise state ~at_eof:true %s" (Automaton.Error.to_string error)
-  | Ok eps_actions ->
-    pr "let tr_eoi_%02d state stack =" id;
-    let eps_actions =
-      List.filter_map eps_actions ~f:Automaton.Epsilon_action.to_runtime_function
-    in
-    List.iter eps_actions ~f:(pr "  let stack = %s state stack in");
-    pr "  eps_eoi_check state stack"
+  (match (tr : Automaton.Epsilon_action.t list Automaton.Table.or_error) with
+   | Error error ->
+     pr "let tr_eoi_%02d_f state _stack =" id;
+     pr "  raise state ~at_eof:true %s" (Automaton.Error.to_string error)
+   | Ok eps_actions ->
+     pr "let tr_eoi_%02d_f state stack =" id;
+     let eps_actions =
+       List.filter_map eps_actions ~f:Automaton.Epsilon_action.to_runtime_function
+     in
+     List.iter eps_actions ~f:(pr "  let stack = %s state stack in");
+     pr "  eps_eoi_check state stack");
+  pr "let tr_eoi_%02d : Automaton_action.Epsilon.Poly.t = { f = tr_eoi_%02d_f }" id id
 ;;
 
 let print_table suffix tbl ids =

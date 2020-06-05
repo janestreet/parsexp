@@ -50,7 +50,7 @@ let test_cont_state input =
     | _ -> [%sexp Raised]
   in
   let parsexp =
-    let open Private.Parser_automaton in
+    let open Private.Automaton in
     let state = new_state Single Sexp in
     ignore
       (String.fold input ~init:Automaton_stack.empty ~f:(fun stack ch ->
