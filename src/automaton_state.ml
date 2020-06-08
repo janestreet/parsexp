@@ -17,13 +17,13 @@ let initial_user_state : type u s. (u, s) Kind.t -> Positions.pos -> u =
     { token_buffer = Buffer.create 128; token_start_pos = Positions.beginning_of_file }
 ;;
 
-(* these magic numbers are checked in gen_parser_automaton.ml:
-   let () = assert (initial = 0)
-   let () = assert (to_int Error = 1) *)
+(*$ Parsexp_cinaps_helpers.Gen_automaton_state.print_constants ();; *)
 let initial_state = 0
 let error_state = 1
 
-let new_state ?(initial_pos = Positions.beginning_of_file) mode kind =
+(*$*)
+
+let create ?(initial_pos = Positions.beginning_of_file) mode kind =
   { kind
   ; depth = 0
   ; automaton_state = initial_state

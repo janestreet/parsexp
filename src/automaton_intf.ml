@@ -3,6 +3,8 @@
 open! Import
 
 module type Automaton = sig
+  module Stack = Automaton_stack
+
   include module type of struct
     include Automaton_state
   end
@@ -14,4 +16,12 @@ module type Automaton = sig
   val feed : ('a, 'b) t -> char -> 'b -> 'b
   val feed_eoi : ('a, 'b) t -> 'b -> 'b
   val old_parser_cont_state : ('a, 'b) t -> Old_parser_cont_state.t
+
+  val of_substring
+    :  ('u, 's) Mode.t
+    -> ('u, 's) Kind.t
+    -> string
+    -> pos:int
+    -> len:int
+    -> ('u, 's) t * 's
 end

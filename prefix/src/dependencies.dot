@@ -1,0 +1,6 @@
+digraph {
+	import -> atom_prefix_intf;
+	atom_prefix_intf -> atom_prefix;
+	atom_prefix -> parsexp_prefix;
+}
+

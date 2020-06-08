@@ -1,4 +1,5 @@
 open! Import
+module Stack = Automaton_stack
 include Automaton_state
 
 let feed (type u s) (state : (u, s) Automaton_state.t) char (stack : s) : s =
@@ -61,4 +62,17 @@ let feed_string state str stack =
 
 let feed_bytes state str stack =
   feed_subbytes_unsafe str state stack 0 (Bytes.length str)
+;;
+
+let empty_stack : type u s. (u, s) Kind.t -> s = function
+  | Sexp -> Stack.empty
+  | Sexp_with_positions -> Stack.empty
+  | Positions -> Stack.Just_positions.empty
+  | Cst -> Stack.For_cst.empty
+;;
+
+let of_substring (type u s) (mode : (u, s) Mode.t) (kind : (u, s) Kind.t) s ~pos ~len =
+  let state = create mode kind in
+  let stack = feed_substring state s ~pos ~len (empty_stack kind) in
+  state, stack
 ;;

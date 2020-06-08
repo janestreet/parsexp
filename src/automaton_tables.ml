@@ -5,8 +5,7 @@ let raise = Automaton_action.raise_error
 type u'
 type s'
 
-(*$ open Parsexp_cinaps_helpers.Gen_parser_automaton ;; *)
-(*$ print_code () ;; *)
+(*$ Parsexp_cinaps_helpers.Gen_automaton_tables.print_code () ;; *)
 
 let tr_00_f state char stack =
   let stack = add_first_char state char stack in

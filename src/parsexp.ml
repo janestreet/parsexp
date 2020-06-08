@@ -97,4 +97,6 @@ module Conv_many_at_once =
 module Private = struct
   module Automaton = Automaton
   module Automaton_stack = Automaton_stack
+  module Automaton_state = Automaton_state
+  module Positions = Positions
 end

@@ -25,7 +25,7 @@ let make (type stack state parsed_value) kind mode make_value
     module State = struct
       type t = (state, Stack.t) Automaton_state.t
 
-      let create ?pos () = A.new_state ?initial_pos:pos mode kind
+      let create ?pos () = A.create ?initial_pos:pos mode kind
       let reset = A.reset
       let offset = A.offset
       let line = A.line
@@ -87,7 +87,7 @@ let make_eager (type stack state parsed_value) kind make_value
           f state parsed_value;
           Stack.empty
         in
-        A.new_state ?initial_pos:pos (Eager { got_sexp; no_sexp_is_error }) kind
+        A.create ?initial_pos:pos (Eager { got_sexp; no_sexp_is_error }) kind
       ;;
 
       let reset = A.reset

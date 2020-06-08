@@ -105,7 +105,7 @@ let feed_eoi state stack =
 ;;
 
 let parse_string_gen mode s =
-  let state = A.new_state mode Sexp in
+  let state = A.create mode Sexp in
   let len = String.length s in
   let rec loop pos stack =
     if pos = len
@@ -568,7 +568,7 @@ let%expect_test "coverage" =
   List.iter zero_sexp_cases ~f:test_one_case_dealing_with_many_sexps;
   (* Transition after an error *)
   let after_error () =
-    let state = A.new_state Many Sexp in
+    let state = A.create Many Sexp in
     match feed state ')' Automaton_stack.empty with
     | (_ : Automaton_stack.t) -> assert false
     | exception _ -> state

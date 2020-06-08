@@ -65,7 +65,7 @@ module type Automaton_state = sig
 
   type ('u, 's) t = ('u, 's) State.t
 
-  val new_state
+  val create
     :  ?initial_pos:Positions.pos
     -> ('u, 's) Mode.t
     -> ('u, 's) Kind.t
