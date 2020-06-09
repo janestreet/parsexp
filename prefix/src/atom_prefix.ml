@@ -19,37 +19,42 @@ let complete prefix : Signified.t = Complete { prefix }
 
 let create_unquoted (state : (_, _) Automaton.t) make_signified =
   let prefix = Buffer.contents state.atom_buffer in
-  Some
-    { signified = make_signified prefix
-    ; signifier_begin_offset = state.offset - String.length prefix
-    ; signifier_end_offset = state.offset
-    }
+  { signified = make_signified prefix
+  ; signifier_begin_offset = state.offset - String.length prefix
+  ; signifier_end_offset = state.offset
+  }
 ;;
 
 let create_quoted (state : (_, _) Automaton.t) make_signified =
   let prefix = Buffer.contents state.atom_buffer in
-  Some
-    { signified = make_signified prefix
-    ; signifier_begin_offset = offset_of_start_of_current_quoted_atom state.user_state
-    ; signifier_end_offset = state.offset
-    }
+  { signified = make_signified prefix
+  ; signifier_begin_offset = offset_of_start_of_current_quoted_atom state.user_state
+  ; signifier_end_offset = state.offset
+  }
 ;;
 
-let create (state : (_, _) Automaton.t) =
+let create (state : (_, _) Automaton.t) : t Create_result.t =
   match Automaton.context state with
-  | Sexp_comment -> None
+  | Sexp_comment -> Awkward_position
   | Sexp ->
     (match Parsexp_symbolic_automaton.State.of_int state.automaton_state with
-     | Whitespace | Error | After_cr | Line_comment | After_hash | Block_comment _ -> None
-     | Unquoted_string _ -> create_unquoted state complete
-     | Quoted_string (Normal | Ignoring_blanks) -> create_quoted state complete
+     | Whitespace -> Whitespace
+     | Error | After_cr | Line_comment | After_hash | Block_comment _ -> Awkward_position
+     | Unquoted_string _ -> Some (create_unquoted state complete)
+     | Quoted_string (Normal | Ignoring_blanks) -> Some (create_quoted state complete)
      | Quoted_string
          ( After_backslash
          | After_backslash_cr
          | After_backslash_digit
          | After_backslash_2digits
          | After_backslash_x
-         | After_backslash_x_hex ) -> create_quoted state incomplete)
+         | After_backslash_x_hex ) -> Some (create_quoted state incomplete))
+;;
+
+let create_opt state =
+  match create state with
+  | Some t -> Some t
+  | Awkward_position | Whitespace -> None
 ;;
 
 let get_signified t = t.signified

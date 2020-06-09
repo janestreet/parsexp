@@ -19,18 +19,32 @@ module Signified = struct
   [@@deriving sexp_of]
 end
 
+module Create_result = struct
+  type 't t =
+    | Awkward_position
+    | Whitespace
+    | Some of 't
+end
+
 module type Atom_prefix = sig
   module Signified = Signified
 
   type t [@@deriving sexp_of]
 
-  (** [create state] returns [Some t] if the parser is known to be in an atom.
+  (** [create state] inspects the parser state and returns [Some t] if the parser is known
+      to be in a (non-comment) atom.
 
-      [create] returns [None] when the parser is uncertain whether or not it is in an
-      atom. For example, [#] not in double-quotes can be either an atom or a block
-      comment. The parser must consume the next character to determine which. *)
-  val create : (Positions.Builder.t, _) Automaton.t -> t option
+      [create] returns [Awkward_position] in the middle of comments (including sexp
+      comments) or when the parser is uncertain whether or not it is in an atom. For
+      example, [#] not in double-quotes can be either an atom or a block comment. The
+      parser must consume the next character to determine which.
 
+      [Whitespace] state is reported separately because the caller may choose to interpret
+      it as an atom prefix of length 0: we know that it would be safe to start an atom
+      here. *)
+  val create : (Positions.Builder.t, _) Automaton.t -> t Create_result.t
+
+  val create_opt : (Positions.Builder.t, _) Automaton.t -> t option
   val get_signified : t -> Signified.t
 
   (** [get_signifier t ~parser_input] returns the substring of [parser_input]

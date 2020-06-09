@@ -63,7 +63,7 @@ let round_trip_prefix of_atom ~len ~parser_input ~verbose =
 ;;
 
 let show_state state len =
-  let of_atom = Atom_prefix.create state in
+  let of_atom = Atom_prefix.create_opt state in
   let positions = Positions.Builder.contents state.user_state |> Positions.to_list in
   let state = Parsexp_symbolic_automaton.State.of_int state.automaton_state in
   [%sexp
@@ -89,7 +89,7 @@ let test_every_prefix (saw_state : Coverage.Saw_state.t) ~parser_input ~verbose 
   in
   saw_state.f state;
   if verbose then print_s (show_state state len);
-  let%bind.Tilde_f of_atom = Option.iter (Atom_prefix.create state) in
+  let%bind.Tilde_f of_atom = Option.iter (Atom_prefix.create_opt state) in
   match Atom_prefix.get_signified of_atom with
   | Incomplete { prefix_of_prefix = prefix } | Complete { prefix } ->
     saw_prefix.f ~prefix;
