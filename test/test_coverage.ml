@@ -1,5 +1,5 @@
 open! Import
-open Gen_parsexp_lib.Automaton
+open Parsexp_symbolic_automaton.Automaton
 
 (* For the coverage tests, we write as input a list of string and expected s-expression.
 
@@ -15,13 +15,14 @@ open Gen_parsexp_lib.Automaton
 
 (* Compute the classes of character that give the same transition whatever the state. *)
 module Char_class = struct
-  open Table
+  open Parsexp_symbolic_automaton.Table
 
   module T = struct
-    type t = transition or_error list [@@deriving compare, sexp_of, hash]
+    type t = Transition.t Or_parse_error_reason.t list
+    [@@deriving compare, sexp_of, hash]
   end
 
-  let compute (table : Table.t) =
+  let compute (table : t) =
     let transitions_to_class = Hashtbl.create (module T) in
     let classes = Array.create 0 ~len:256 in
     for i = 0 to 255 do
@@ -37,7 +38,7 @@ module Char_class = struct
     Hashtbl.length transitions_to_class, classes
   ;;
 
-  let count, class_table = compute table
+  let count, class_table = compute Parsexp_symbolic_automaton.table
   let () = assert (count <= 256)
   let of_char ch = class_table.(Char.to_int ch)
 

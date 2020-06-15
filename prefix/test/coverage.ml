@@ -79,7 +79,7 @@ let with_prefix_coverage full_string ~f =
 ;;
 
 let with_state_coverage ~f =
-  let module State = Parsexp_symbolic_automaton.State in
+  let module State = Parsexp_symbolic_automaton.Automaton.State in
   let module States_seen = struct
     type t = int
 

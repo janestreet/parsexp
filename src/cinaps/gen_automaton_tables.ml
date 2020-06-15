@@ -3,7 +3,9 @@
 *)
 
 open! Base
-open! Import
+module Automaton = Parsexp_symbolic_automaton.Automaton
+module Parse_error_reason = Parsexp_symbolic_automaton.Parse_error_reason
+module Table = Parsexp_symbolic_automaton.Table
 
 (* Sharing of transitions *)
 module Sharing = struct
@@ -15,7 +17,7 @@ module Sharing = struct
       then Hashtbl.add_exn cache ~key:x ~data:(Hashtbl.length cache) )
   ;;
 
-  let share (table : Automaton.Table.t) =
+  let share (table : Table.t) =
     let transitions, assign_transition_id = create_assign_id () in
     let transitions_eoi, assign_transition_eoi_id = create_assign_id () in
     Array.iter table.transitions ~f:assign_transition_id;
@@ -32,20 +34,20 @@ let ordered_ids tbl =
 ;;
 
 let print_named_transition (id, tr) =
-  (match (tr : Automaton.Table.transition Automaton.Table.or_error) with
+  (match (tr : Table.Transition.t Table.Or_parse_error_reason.t) with
    | Error error ->
      pr "let tr_%02d_f _state _char _stack =" id;
-     pr "  raise _state ~at_eof:false %s" (Automaton.Error.to_string error)
+     pr "  raise _state ~at_eof:false %s" (Parse_error_reason.to_string error)
    | Ok { action = eps_actions, action; goto; advance } ->
      let eps_actions =
-       List.filter_map ~f:Automaton.Epsilon_action.to_runtime_function eps_actions
+       List.filter_map ~f:Automaton.epsilon_action_to_runtime_function eps_actions
      in
-     let action = Automaton.Action.to_runtime_function action in
+     let action = Automaton.action_to_runtime_function action in
      pr
        "let tr_%02d_f state %schar stack ="
        id
        (if Option.is_none action
-        && not ([%compare.equal: Automaton.Table.goto_state] goto End_block_comment)
+        && not ([%compare.equal: Table.Goto_state.t] goto End_block_comment)
         then "_"
         else "");
      List.iter eps_actions ~f:(pr "  let stack = %s state stack in");
@@ -70,14 +72,14 @@ let print_named_transition (id, tr) =
 ;;
 
 let print_named_transition_eoi (id, tr) =
-  (match (tr : Automaton.Epsilon_action.t list Automaton.Table.or_error) with
+  (match (tr : Automaton.Epsilon_action.t list Table.Or_parse_error_reason.t) with
    | Error error ->
      pr "let tr_eoi_%02d_f state _stack =" id;
-     pr "  raise state ~at_eof:true %s" (Automaton.Error.to_string error)
+     pr "  raise state ~at_eof:true %s" (Parse_error_reason.to_string error)
    | Ok eps_actions ->
      pr "let tr_eoi_%02d_f state stack =" id;
      let eps_actions =
-       List.filter_map eps_actions ~f:Automaton.Epsilon_action.to_runtime_function
+       List.filter_map eps_actions ~f:Automaton.epsilon_action_to_runtime_function
      in
      List.iter eps_actions ~f:(pr "  let stack = %s state stack in");
      pr "  eps_eoi_check state stack");
@@ -100,10 +102,11 @@ let print_old_parser_approx_cont_states () =
 ;;
 
 let print_code () =
-  let named_transitions, named_transitions_eoi = Sharing.share Automaton.table in
+  let table = Parsexp_symbolic_automaton.table in
+  let named_transitions, named_transitions_eoi = Sharing.share table in
   List.iter (ordered_ids named_transitions) ~f:print_named_transition;
   List.iter (ordered_ids named_transitions_eoi) ~f:print_named_transition_eoi;
-  print_table "" Automaton.table.transitions named_transitions;
-  print_table "_eoi" Automaton.table.transitions_eoi named_transitions_eoi;
+  print_table "" table.transitions named_transitions;
+  print_table "_eoi" table.transitions_eoi named_transitions_eoi;
   print_old_parser_approx_cont_states ()
 ;;

@@ -65,11 +65,11 @@ let round_trip_prefix of_atom ~len ~parser_input ~verbose =
 let show_state state len =
   let of_atom = Atom_prefix.create_opt state in
   let positions = Positions.Builder.contents state.user_state |> Positions.to_list in
-  let state = Parsexp_symbolic_automaton.State.of_int state.automaton_state in
+  let state = Parsexp_symbolic_automaton.Automaton.State.of_int state.automaton_state in
   [%sexp
     { len : int
     ; of_atom : Atom_prefix.t option
-    ; state : Parsexp_symbolic_automaton.State.t
+    ; state : Parsexp_symbolic_automaton.Automaton.State.t
     ; positions : Positions.pos list
     }]
 ;;

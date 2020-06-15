@@ -37,7 +37,7 @@ let create (state : (_, _) Automaton.t) : t Create_result.t =
   match Automaton.context state with
   | Sexp_comment -> Awkward_position
   | Sexp ->
-    (match Parsexp_symbolic_automaton.State.of_int state.automaton_state with
+    (match Parsexp_symbolic_automaton.Automaton.State.of_int state.automaton_state with
      | Whitespace -> Whitespace
      | Error | After_cr | Line_comment | After_hash | Block_comment _ -> Awkward_position
      | Unquoted_string _ -> Some (create_unquoted state complete)
