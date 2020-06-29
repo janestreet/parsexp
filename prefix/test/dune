@@ -1,5 +1,5 @@
 (library (name parsexp_prefix_test)
  (libraries core_kernel.composition_infix core_kernel
   expect_test_helpers_core parsexp parsexp_prefix parsexp_symbolic_automaton
-  tilde_f)
+  sexp_string_quickcheck tilde_f)
  (preprocess (pps ppx_jane)))

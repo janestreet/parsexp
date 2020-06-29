@@ -2,8 +2,10 @@ open! Core_kernel
 include Composition_infix
 include Expect_test_helpers_core
 include Parsexp_prefix
+module Atom_string = Sexp_string_quickcheck.Atom_string
 module Automaton = Parsexp.Private.Automaton
 module Positions = Parsexp.Private.Positions
+module Sexp_string = Sexp_string_quickcheck.Sexp_string
 
 let state_after_every_prefix mode s =
   let len = String.length s in

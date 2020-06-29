@@ -102,9 +102,7 @@ let%expect_test _ =
   Tilde_f.run
     (let%bind.Tilde_f () = Tilde_f.of_unlabeled (require_does_not_raise [%here]) in
      let%bind.Tilde_f state_coverage = Coverage.with_state_coverage in
-     let%bind.Tilde_f parser_input =
-       Base_quickcheck.Test.run_exn (module Atom_signifier)
-     in
+     let%bind.Tilde_f parser_input = Base_quickcheck.Test.run_exn (module Atom_string) in
      test_every_prefix state_coverage ~parser_input ~verbose:false);
   [%expect {| |}]
 ;;
