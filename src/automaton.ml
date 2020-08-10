@@ -60,9 +60,7 @@ let feed_string state str stack =
   feed_substring_unsafe str state stack 0 (String.length str)
 ;;
 
-let feed_bytes state str stack =
-  feed_subbytes_unsafe str state stack 0 (Bytes.length str)
-;;
+let feed_bytes state str stack = feed_subbytes_unsafe str state stack 0 (Bytes.length str)
 
 let empty_stack : type u s. (u, s) Kind.t -> s = function
   | Sexp -> Stack.empty

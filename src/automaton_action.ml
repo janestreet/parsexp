@@ -312,8 +312,7 @@ let add_sexp_to_stack_cst sexp : Automaton_stack.For_cst.t -> Automaton_stack.Fo
     | stack -> T_or_comment (Sexp sexp, stack)
 ;;
 
-let rec make_list_cst end_pos acc
-  : Automaton_stack.For_cst.t -> Automaton_stack.For_cst.t
+let rec make_list_cst end_pos acc : Automaton_stack.For_cst.t -> Automaton_stack.For_cst.t
   = function
     | T_or_comment (t, stack) -> make_list_cst end_pos (t :: acc) stack
     | Open (start_pos, stack) ->

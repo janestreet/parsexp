@@ -399,8 +399,7 @@ let%expect_test "eager parser semantics" =
           (match Single.parse_string (String.sub ~pos:start ~len:ate input) with
            | Error _ ->
              raise_s
-               [%message
-                 "Eager gave us a sexp that won't parse" (start : int) (i : int)]
+               [%message "Eager gave us a sexp that won't parse" (start : int) (i : int)]
            | Ok sexp2 ->
              assert (Sexp.( = ) sexp sexp2);
              let state = P.State.create got_sexp in

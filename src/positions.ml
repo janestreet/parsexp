@@ -327,10 +327,7 @@ module Builder = struct
     match n with
     | 0 | 1 | 2 | 3 | 4 ->
       let num_bits = (n lsl 1) + instr_bits in
-      add_bits
-        t
-        ((shift4 lsl instr_bits) lor instr land ((1 lsl num_bits) - 1))
-        ~num_bits
+      add_bits t ((shift4 lsl instr_bits) lor instr land ((1 lsl num_bits) - 1)) ~num_bits
     | 5
     | 6
     | 7

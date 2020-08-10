@@ -3,7 +3,7 @@ open! Import
 module Reason = struct
   (*_ Some of these come from [Parsexp_symbolic_automaton.Parse_error_reason]. *)
   type t =
-    (*$ Parsexp_cinaps_helpers.Gen_parse_error.print_constructors () ;; *)
+    (*$ Parsexp_cinaps_helpers.Gen_parse_error.print_constructors () *)
     | Automaton_in_error_state
     | Comment_token_in_unquoted_atom
     | Unexpected_char_parsing_dec_escape

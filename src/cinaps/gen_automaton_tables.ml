@@ -87,8 +87,7 @@ let print_named_transition_eoi (id, tr) =
 ;;
 
 let print_table suffix tbl ids =
-  Array.map tbl ~f:(fun tr ->
-    Printf.sprintf "tr%s_%02d" suffix (Hashtbl.find_exn ids tr))
+  Array.map tbl ~f:(fun tr -> Printf.sprintf "tr%s_%02d" suffix (Hashtbl.find_exn ids tr))
   |> Array.to_list
   |> String.concat ~sep:";"
   |> Stdio.printf "let transitions%s = [| %s |]" suffix

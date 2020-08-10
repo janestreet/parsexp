@@ -5,7 +5,7 @@ let raise = Automaton_action.raise_error
 type u'
 type s'
 
-(*$ Parsexp_cinaps_helpers.Gen_automaton_tables.print_code () ;; *)
+(*$ Parsexp_cinaps_helpers.Gen_automaton_tables.print_code () *)
 
 let tr_00_f state char stack =
   let stack = add_first_char state char stack in
@@ -94,11 +94,7 @@ let tr_09_f state char stack =
 let tr_09 : Automaton_action.Poly.t = { f = tr_09_f }
 let tr_10_f _state _char _stack = raise _state ~at_eof:false Automaton_in_error_state
 let tr_10 : Automaton_action.Poly.t = { f = tr_10_f }
-
-let tr_11_f _state _char _stack =
-  raise _state ~at_eof:false Unexpected_character_after_cr
-;;
-
+let tr_11_f _state _char _stack = raise _state ~at_eof:false Unexpected_character_after_cr
 let tr_11 : Automaton_action.Poly.t = { f = tr_11_f }
 
 let tr_12_f state char stack =

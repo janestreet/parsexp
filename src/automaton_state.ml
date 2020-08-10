@@ -17,7 +17,7 @@ let initial_user_state : type u s. (u, s) Kind.t -> Positions.pos -> u =
     { token_buffer = Buffer.create 128; token_start_pos = Positions.beginning_of_file }
 ;;
 
-(*$ Parsexp_cinaps_helpers.Gen_automaton_state.print_constants ();; *)
+(*$ Parsexp_cinaps_helpers.Gen_automaton_state.print_constants () *)
 let initial_state = 0
 let error_state = 1
 

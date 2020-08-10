@@ -49,8 +49,7 @@ let rec sexp_of_t =
       let bnds = [] in
       let bnds =
         let arg = sexp_of_list sexp_of_t_or_comment v_elements in
-        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "elements"; arg ]
-        :: bnds
+        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "elements"; arg ] :: bnds
       in
       let bnds =
         let arg = Positions.sexp_of_range v_loc in
@@ -91,8 +90,7 @@ and sexp_of_comment =
       in
       let bnds =
         let arg = sexp_of_list sexp_of_comment v_comments in
-        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "comments"; arg ]
-        :: bnds
+        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "comments"; arg ] :: bnds
       in
       let bnds =
         let arg = Positions.sexp_of_pos v_hash_semi_pos in

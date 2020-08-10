@@ -36,8 +36,7 @@ let eager_cst_consume_string s on_parsed_value =
 let parse_a_comment_eagerly signifier =
   Option.try_with_join (fun () ->
     with_return_option (fun { return } ->
-      eager_cst_consume_string signifier (fun _ ->
-        function
+      eager_cst_consume_string signifier (fun _ -> function
         | Sexp _ -> ()
         | Comment comment -> return comment)))
 ;;
@@ -57,8 +56,7 @@ let assert_signifier_has_no_comments of_atom ~len ~parser_input =
 let round_trip_prefix of_atom ~len ~parser_input ~verbose =
   let prefix_signifier = Atom_prefix.get_signifier of_atom ~parser_input in
   let suffix = String.drop_prefix parser_input len in
-  if verbose
-  then print_s [%message (prefix_signifier : string) (of_atom : Atom_prefix.t)];
+  if verbose then print_s [%message (prefix_signifier : string) (of_atom : Atom_prefix.t)];
   prefix_signifier ^ suffix
 ;;
 

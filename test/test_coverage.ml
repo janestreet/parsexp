@@ -18,8 +18,7 @@ module Char_class = struct
   open Parsexp_symbolic_automaton.Table
 
   module T = struct
-    type t = Transition.t Or_parse_error_reason.t list
-    [@@deriving compare, sexp_of, hash]
+    type t = Transition.t Or_parse_error_reason.t list [@@deriving compare, sexp_of, hash]
   end
 
   let compute (table : t) =
@@ -227,9 +226,7 @@ let witness_for_class cl =
   let rec loop i =
     if i = 256
     then  raise Caml.Not_found;
-    if Char_class.of_char (Char.of_int_exn i) = cl
-    then Char.of_int_exn i
-    else loop (i + 1)
+    if Char_class.of_char (Char.of_int_exn i) = cl then Char.of_int_exn i else loop (i + 1)
   in
   let ch = loop 0 in
   match ch with

@@ -115,10 +115,7 @@ let make_eager (type stack state parsed_value) kind make_value
 
       let pos_of_lexbuf lexbuf =
         let p = lexbuf.Lexing.lex_curr_p in
-        { Positions.line = p.pos_lnum
-        ; col = p.pos_cnum - p.pos_bol
-        ; offset = p.pos_cnum
-        }
+        { Positions.line = p.pos_lnum; col = p.pos_cnum - p.pos_bol; offset = p.pos_cnum }
       ;;
 
       let update_lexbuf (lexbuf : Lexing.lexbuf) (pos : Positions.pos) =
