@@ -8,7 +8,7 @@ let data =
   if Sys.file_exists data_fn
   then sprintf "(%s)" (In_channel.read_all data_fn)
   else (
-    (* Collect all the jbuilds in ${ROOT}/lib *)
+    (* Collect all the jbuilds in $ROOT/lib *)
     let ic = Unix.open_process_in "find ../../../lib -name jbuild -exec cat {} \\;" in
     let s = In_channel.input_all ic in
     assert (Unix.close_process_in ic = WEXITED 0);
