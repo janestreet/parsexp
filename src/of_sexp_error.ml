@@ -49,7 +49,7 @@ let report ppf ~filename t =
     line
     start
     stop
-    (Printexc.to_string t.user_exn)
+    (Sexplib0.Sexp_conv.printexc_prefer_sexp t.user_exn)
 ;;
 
 exception Of_sexp_error of t [@@deriving_inline sexp_of]
