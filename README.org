@@ -3,7 +3,6 @@
 =Parsexp= contains functionality for parsing s-expressions, which are
 defined in the [[https://github.com/janestreet/base][Base]] library as follows:
 
-#+UUID: 15cf271c-a880-3639-53df-3827119f7319
 #+begin_src ocaml
 module Sexp : sig
   type t = Atom of string | List of t list
