@@ -58,8 +58,8 @@ let create_opt state =
 ;;
 
 let get_signified t = t.signified
+let get_signifier_length t = t.signifier_end_offset - t.signifier_begin_offset
 
 let get_signifier t ~parser_input =
-  let len = t.signifier_end_offset - t.signifier_begin_offset in
-  String.sub parser_input t.signifier_begin_offset len
+  String.sub parser_input t.signifier_begin_offset (get_signifier_length t)
 ;;

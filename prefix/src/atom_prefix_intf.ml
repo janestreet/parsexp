@@ -57,4 +57,6 @@ module type Atom_prefix = sig
       [get_signifier] does not necessarily return a valid sexp: consider when the parser
       is partway through a quoted string. *)
   val get_signifier : t -> parser_input:string -> string
+
+  val get_signifier_length : t -> int
 end
