@@ -46,8 +46,9 @@ let print_named_transition (id, tr) =
      pr
        "let tr_%02d_f state %schar stack ="
        id
-       (if Option.is_none action
-        && not ([%compare.equal: Table.Goto_state.t] goto End_block_comment)
+       (if
+         Option.is_none action
+         && not ([%compare.equal: Table.Goto_state.t] goto End_block_comment)
         then "_"
         else "");
      List.iter eps_actions ~f:(pr "  let stack = %s state stack in");

@@ -277,11 +277,12 @@ let sexp_added : type u s. (u, s) Automaton_state.t -> s -> delta:int -> s =
   if is_top_level state
   then (
     if not is_comment then state.full_sexps <- state.full_sexps + 1;
-    if (not is_comment)
-       ||
-       match state.kind with
-       | Cst -> true
-       | _ -> false
+    if
+      (not is_comment)
+      ||
+      match state.kind with
+      | Cst -> true
+      | _ -> false
     then toplevel_sexp_or_comment_added state stack ~delta
     else stack)
   else stack
