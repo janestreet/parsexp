@@ -1,3 +1,4 @@
+open! Ppx_compare_lib.Builtin
 open! Import
 include Atom_prefix_intf
 
@@ -6,7 +7,7 @@ type t =
   ; signifier_begin_offset : int
   ; signifier_end_offset : int
   }
-[@@deriving sexp_of]
+[@@deriving compare, sexp_of]
 
 let offset_of_start_of_current_quoted_atom position_builder =
   match Positions.Builder.contents position_builder |> Positions.to_list |> List.rev with
@@ -63,3 +64,12 @@ let get_signifier_length t = t.signifier_end_offset - t.signifier_begin_offset
 let get_signifier t ~parser_input =
   String.sub parser_input t.signifier_begin_offset (get_signifier_length t)
 ;;
+
+module Unstable = struct
+  type nonrec t = t =
+    { signified : Signified.Unstable.t
+    ; signifier_begin_offset : int
+    ; signifier_end_offset : int
+    }
+  [@@deriving sexp]
+end

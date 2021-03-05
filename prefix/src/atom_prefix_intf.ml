@@ -6,6 +6,7 @@
     2. the signified: the atom we mean to exist in the parsed OCaml value
 *)
 
+open! Ppx_compare_lib.Builtin
 open! Import
 
 module Signified = struct
@@ -16,7 +17,14 @@ module Signified = struct
     | Incomplete of { prefix_of_prefix : string }
     (** [Incomplete] means the parser is uncertain how to handle some suffix of the input
         it has seen so far. E.g. midway through a backslash-escape sequence *)
-  [@@deriving sexp_of]
+  [@@deriving compare, sexp_of]
+
+  module Unstable = struct
+    type nonrec t = t =
+      | Complete of { prefix : string }
+      | Incomplete of { prefix_of_prefix : string }
+    [@@deriving sexp]
+  end
 end
 
 module Create_result = struct
@@ -29,7 +37,7 @@ end
 module type Atom_prefix = sig
   module Signified = Signified
 
-  type t [@@deriving sexp_of]
+  type t [@@deriving compare, sexp_of]
 
   (** [create state] inspects the parser state and returns [Some t] if the parser is known
       to be in a (non-comment) atom.
@@ -59,4 +67,8 @@ module type Atom_prefix = sig
   val get_signifier : t -> parser_input:string -> string
 
   val get_signifier_length : t -> int
+
+  module Unstable : sig
+    type nonrec t = t [@@deriving sexp]
+  end
 end
