@@ -5,7 +5,7 @@ module Unix = Caml_unix
 
 let data =
   let data_fn = "data.sexp" in
-  if Sys.file_exists data_fn
+  if Caml.Sys.file_exists data_fn
   then sprintf "(%s)" (In_channel.read_all data_fn)
   else (
     (* Collect all the jbuilds in $ROOT/lib *)
