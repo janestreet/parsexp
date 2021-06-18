@@ -1,4 +1,4 @@
-open! Core_kernel
+open! Core
 open! Import
 
 let round_trip_prefix prefix ~len ~parser_input ~verbose =

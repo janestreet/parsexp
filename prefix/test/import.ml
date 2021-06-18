@@ -1,4 +1,4 @@
-open! Core_kernel
+open! Core
 include Composition_infix
 include Expect_test_helpers_core
 include Parsexp_prefix
