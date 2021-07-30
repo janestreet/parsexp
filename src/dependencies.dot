@@ -27,6 +27,5 @@ digraph {
 	conv_intf -> conv;
 	parse_error_intf -> parse_error;
 	automaton_state_intf -> automaton_state;
-	bytes0 -> positions;
 }
 

@@ -26,7 +26,7 @@ module type Parse_error = sig
   include sig
     [@@@ocaml.warning "-32"]
 
-    val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+    val sexp_of_t : t -> Sexplib0.Sexp.t
   end
   [@@ocaml.doc "@inline"]
 

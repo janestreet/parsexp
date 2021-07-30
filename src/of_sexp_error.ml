@@ -8,23 +8,22 @@ type t =
 [@@deriving_inline sexp_of]
 
 let sexp_of_t =
-  (function
-    | { user_exn = v_user_exn; sub_sexp = v_sub_sexp; location = v_location } ->
-      let bnds = [] in
-      let bnds =
-        let arg = sexp_of_option Positions.sexp_of_range v_location in
-        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "location"; arg ] :: bnds
-      in
-      let bnds =
-        let arg = Sexp.sexp_of_t v_sub_sexp in
-        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "sub_sexp"; arg ] :: bnds
-      in
-      let bnds =
-        let arg = sexp_of_exn v_user_exn in
-        Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "user_exn"; arg ] :: bnds
-      in
-      Ppx_sexp_conv_lib.Sexp.List bnds
-      : t -> Ppx_sexp_conv_lib.Sexp.t)
+  (fun { user_exn = v_user_exn; sub_sexp = v_sub_sexp; location = v_location } ->
+     let bnds = [] in
+     let bnds =
+       let arg = sexp_of_option Positions.sexp_of_range v_location in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "location"; arg ] :: bnds
+     in
+     let bnds =
+       let arg = Sexp.sexp_of_t v_sub_sexp in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "sub_sexp"; arg ] :: bnds
+     in
+     let bnds =
+       let arg = sexp_of_exn v_user_exn in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "user_exn"; arg ] :: bnds
+     in
+     Sexplib0.Sexp.List bnds
+     : t -> Sexplib0.Sexp.t)
 ;;
 
 [@@@end]
@@ -55,14 +54,11 @@ let report ppf ~filename t =
 exception Of_sexp_error of t [@@deriving_inline sexp_of]
 
 let () =
-  Ppx_sexp_conv_lib.Conv.Exn_converter.add
-    [%extension_constructor Of_sexp_error]
-    (function
-      | Of_sexp_error v0 ->
-        let v0 = sexp_of_t v0 in
-        Ppx_sexp_conv_lib.Sexp.List
-          [ Ppx_sexp_conv_lib.Sexp.Atom "of_sexp_error.ml.Of_sexp_error"; v0 ]
-      | _ -> assert false)
+  Sexplib0.Sexp_conv.Exn_converter.add [%extension_constructor Of_sexp_error] (function
+    | Of_sexp_error v0 ->
+      let v0 = sexp_of_t v0 in
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "of_sexp_error.ml.Of_sexp_error"; v0 ]
+    | _ -> assert false)
 ;;
 
 [@@@end]

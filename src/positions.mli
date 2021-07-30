@@ -19,7 +19,7 @@ type t [@@deriving_inline sexp_of, compare]
 include sig
   [@@@ocaml.warning "-32"]
 
-  val sexp_of_t : t -> Ppx_sexp_conv_lib.Sexp.t
+  val sexp_of_t : t -> Sexplib0.Sexp.t
   val compare : t -> t -> int
 end
 [@@ocaml.doc "@inline"]
@@ -39,7 +39,7 @@ type pos =
 include sig
   [@@@ocaml.warning "-32"]
 
-  val sexp_of_pos : pos -> Ppx_sexp_conv_lib.Sexp.t
+  val sexp_of_pos : pos -> Sexplib0.Sexp.t
   val compare_pos : pos -> pos -> int
 end
 [@@ocaml.doc "@inline"]
@@ -64,7 +64,7 @@ type range =
 include sig
   [@@@ocaml.warning "-32"]
 
-  val sexp_of_range : range -> Ppx_sexp_conv_lib.Sexp.t
+  val sexp_of_range : range -> Sexplib0.Sexp.t
   val compare_range : range -> range -> int
 end
 [@@ocaml.doc "@inline"]

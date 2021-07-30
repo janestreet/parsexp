@@ -9,11 +9,11 @@ let sexp_of_t =
   (function
     | Parse_error v0 ->
       let v0 = Parse_error.sexp_of_t v0 in
-      Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "Parse_error"; v0 ]
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Parse_error"; v0 ]
     | Of_sexp_error v0 ->
       let v0 = Of_sexp_error.sexp_of_t v0 in
-      Ppx_sexp_conv_lib.Sexp.List [ Ppx_sexp_conv_lib.Sexp.Atom "Of_sexp_error"; v0 ]
-      : t -> Ppx_sexp_conv_lib.Sexp.t)
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Of_sexp_error"; v0 ]
+      : t -> Sexplib0.Sexp.t)
 ;;
 
 [@@@end]

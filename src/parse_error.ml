@@ -33,11 +33,10 @@ let report ppf ~filename t =
 exception Parse_error of t [@@deriving_inline sexp]
 
 let () =
-  Ppx_sexp_conv_lib.Conv.Exn_converter.add [%extension_constructor Parse_error] (function
+  Sexplib0.Sexp_conv.Exn_converter.add [%extension_constructor Parse_error] (function
     | Parse_error v0 ->
       let v0 = sexp_of_t v0 in
-      Ppx_sexp_conv_lib.Sexp.List
-        [ Ppx_sexp_conv_lib.Sexp.Atom "parse_error.ml.Parse_error"; v0 ]
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "parse_error.ml.Parse_error"; v0 ]
     | _ -> assert false)
 ;;
 
