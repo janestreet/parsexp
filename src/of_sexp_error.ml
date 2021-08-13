@@ -55,9 +55,10 @@ exception Of_sexp_error of t [@@deriving_inline sexp_of]
 
 let () =
   Sexplib0.Sexp_conv.Exn_converter.add [%extension_constructor Of_sexp_error] (function
-    | Of_sexp_error v0 ->
-      let v0 = sexp_of_t v0 in
-      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "of_sexp_error.ml.Of_sexp_error"; v0 ]
+    | Of_sexp_error arg0__001_ ->
+      let res0__002_ = sexp_of_t arg0__001_ in
+      Sexplib0.Sexp.List
+        [ Sexplib0.Sexp.Atom "of_sexp_error.ml.Of_sexp_error"; res0__002_ ]
     | _ -> assert false)
 ;;
 

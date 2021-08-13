@@ -59,12 +59,12 @@ let rec sexp_of_t =
 
 and sexp_of_t_or_comment =
   (function
-    | Sexp v0 ->
-      let v0 = sexp_of_t v0 in
-      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Sexp"; v0 ]
-    | Comment v0 ->
-      let v0 = sexp_of_comment v0 in
-      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Comment"; v0 ]
+    | Sexp arg0__001_ ->
+      let res0__002_ = sexp_of_t arg0__001_ in
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Sexp"; res0__002_ ]
+    | Comment arg0__003_ ->
+      let res0__004_ = sexp_of_comment arg0__003_ in
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Comment"; res0__004_ ]
       : t_or_comment -> Sexplib0.Sexp.t)
 
 and sexp_of_comment =

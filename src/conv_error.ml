@@ -7,12 +7,12 @@ type t =
 
 let sexp_of_t =
   (function
-    | Parse_error v0 ->
-      let v0 = Parse_error.sexp_of_t v0 in
-      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Parse_error"; v0 ]
-    | Of_sexp_error v0 ->
-      let v0 = Of_sexp_error.sexp_of_t v0 in
-      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Of_sexp_error"; v0 ]
+    | Parse_error arg0__001_ ->
+      let res0__002_ = Parse_error.sexp_of_t arg0__001_ in
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Parse_error"; res0__002_ ]
+    | Of_sexp_error arg0__003_ ->
+      let res0__004_ = Of_sexp_error.sexp_of_t arg0__003_ in
+      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Of_sexp_error"; res0__004_ ]
       : t -> Sexplib0.Sexp.t)
 ;;
 
