@@ -6,7 +6,6 @@ type u'
 type s'
 
 (*$ Parsexp_cinaps_helpers.Gen_automaton_tables.print_code () *)
-
 let tr_00_f state char stack =
   let stack = add_first_char state char stack in
   set_automaton_state state 3;
@@ -7718,5 +7717,4 @@ let old_parser_approx_cont_states : Old_parser_cont_state.t array =
    ; Parsing_block_comment
   |]
 ;;
-
 (*$*)
