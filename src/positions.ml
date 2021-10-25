@@ -72,21 +72,21 @@ type pos =
 [@@deriving_inline sexp_of]
 
 let sexp_of_pos =
-  (fun { line = v_line; col = v_col; offset = v_offset } ->
-     let bnds = [] in
-     let bnds =
-       let arg = sexp_of_int v_offset in
-       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "offset"; arg ] :: bnds
+  (fun { line = line__002_; col = col__004_; offset = offset__006_ } ->
+     let bnds__001_ = [] in
+     let bnds__001_ =
+       let arg__007_ = sexp_of_int offset__006_ in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "offset"; arg__007_ ] :: bnds__001_
      in
-     let bnds =
-       let arg = sexp_of_int v_col in
-       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "col"; arg ] :: bnds
+     let bnds__001_ =
+       let arg__005_ = sexp_of_int col__004_ in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "col"; arg__005_ ] :: bnds__001_
      in
-     let bnds =
-       let arg = sexp_of_int v_line in
-       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "line"; arg ] :: bnds
+     let bnds__001_ =
+       let arg__003_ = sexp_of_int line__002_ in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "line"; arg__003_ ] :: bnds__001_
      in
-     Sexplib0.Sexp.List bnds
+     Sexplib0.Sexp.List bnds__001_
      : pos -> Sexplib0.Sexp.t)
 ;;
 
@@ -103,17 +103,17 @@ type range =
 [@@deriving_inline sexp_of]
 
 let sexp_of_range =
-  (fun { start_pos = v_start_pos; end_pos = v_end_pos } ->
-     let bnds = [] in
-     let bnds =
-       let arg = sexp_of_pos v_end_pos in
-       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "end_pos"; arg ] :: bnds
+  (fun { start_pos = start_pos__009_; end_pos = end_pos__011_ } ->
+     let bnds__008_ = [] in
+     let bnds__008_ =
+       let arg__012_ = sexp_of_pos end_pos__011_ in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "end_pos"; arg__012_ ] :: bnds__008_
      in
-     let bnds =
-       let arg = sexp_of_pos v_start_pos in
-       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "start_pos"; arg ] :: bnds
+     let bnds__008_ =
+       let arg__010_ = sexp_of_pos start_pos__009_ in
+       Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "start_pos"; arg__010_ ] :: bnds__008_
      in
-     Sexplib0.Sexp.List bnds
+     Sexplib0.Sexp.List bnds__008_
      : range -> Sexplib0.Sexp.t)
 ;;
 
