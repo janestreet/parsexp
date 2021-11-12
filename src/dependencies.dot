@@ -8,8 +8,9 @@ digraph {
 	automaton_state -> parser_intf;
 	automaton_state -> automaton_intf;
 	automaton_state -> automaton_action;
+	parse_error -> automaton_action;
 	parse_error -> conv_error;
-	parse_error -> automaton_state;
+	parse_error -> parser_intf;
 	automaton -> parser;
 	import -> old_parser_cont_state;
 	import -> positions;

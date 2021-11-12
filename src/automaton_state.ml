@@ -79,7 +79,4 @@ let context state : Context.t =
 
 let has_unclosed_paren state = state.depth > 0
 let set_error_state state = state.automaton_state <- error_state
-
-module Error = Parse_error
-
 let automaton_state state = state.automaton_state
