@@ -47,7 +47,6 @@ let with_prefix_coverage full_string ~f =
     type t = string
 
     let cardinality = String.length full_string + 1 (* "" is a prefix too *)
-
     let of_int_exn len = String.subo full_string ~len
     let to_int_exn = String.length
   end

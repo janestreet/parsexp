@@ -30,29 +30,34 @@ and comment =
 let rec sexp_of_t =
   (function
     | Atom { loc = loc__002_; atom = atom__004_; unescaped = unescaped__006_ } ->
-      let bnds__001_ = [] in
+      let bnds__001_ = ([] : _ Stdlib.List.t) in
       let bnds__001_ =
         let arg__007_ = sexp_of_option sexp_of_string unescaped__006_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "unescaped"; arg__007_ ] :: bnds__001_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "unescaped"; arg__007_ ] :: bnds__001_
+         : _ Stdlib.List.t)
       in
       let bnds__001_ =
         let arg__005_ = sexp_of_string atom__004_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "atom"; arg__005_ ] :: bnds__001_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "atom"; arg__005_ ] :: bnds__001_
+         : _ Stdlib.List.t)
       in
       let bnds__001_ =
         let arg__003_ = Positions.sexp_of_range loc__002_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "loc"; arg__003_ ] :: bnds__001_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "loc"; arg__003_ ] :: bnds__001_
+         : _ Stdlib.List.t)
       in
       Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "Atom" :: bnds__001_)
     | List { loc = loc__009_; elements = elements__011_ } ->
-      let bnds__008_ = [] in
+      let bnds__008_ = ([] : _ Stdlib.List.t) in
       let bnds__008_ =
         let arg__012_ = sexp_of_list sexp_of_t_or_comment elements__011_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "elements"; arg__012_ ] :: bnds__008_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "elements"; arg__012_ ] :: bnds__008_
+         : _ Stdlib.List.t)
       in
       let bnds__008_ =
         let arg__010_ = Positions.sexp_of_range loc__009_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "loc"; arg__010_ ] :: bnds__008_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "loc"; arg__010_ ] :: bnds__008_
+         : _ Stdlib.List.t)
       in
       Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "List" :: bnds__008_)
       : t -> Sexplib0.Sexp.t)
@@ -70,14 +75,16 @@ and sexp_of_t_or_comment =
 and sexp_of_comment =
   (function
     | Plain_comment { loc = loc__018_; comment = comment__020_ } ->
-      let bnds__017_ = [] in
+      let bnds__017_ = ([] : _ Stdlib.List.t) in
       let bnds__017_ =
         let arg__021_ = sexp_of_string comment__020_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "comment"; arg__021_ ] :: bnds__017_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "comment"; arg__021_ ] :: bnds__017_
+         : _ Stdlib.List.t)
       in
       let bnds__017_ =
         let arg__019_ = Positions.sexp_of_range loc__018_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "loc"; arg__019_ ] :: bnds__017_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "loc"; arg__019_ ] :: bnds__017_
+         : _ Stdlib.List.t)
       in
       Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "Plain_comment" :: bnds__017_)
     | Sexp_comment
@@ -85,18 +92,21 @@ and sexp_of_comment =
         ; comments = comments__025_
         ; sexp = sexp__027_
         } ->
-      let bnds__022_ = [] in
+      let bnds__022_ = ([] : _ Stdlib.List.t) in
       let bnds__022_ =
         let arg__028_ = sexp_of_t sexp__027_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "sexp"; arg__028_ ] :: bnds__022_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "sexp"; arg__028_ ] :: bnds__022_
+         : _ Stdlib.List.t)
       in
       let bnds__022_ =
         let arg__026_ = sexp_of_list sexp_of_comment comments__025_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "comments"; arg__026_ ] :: bnds__022_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "comments"; arg__026_ ] :: bnds__022_
+         : _ Stdlib.List.t)
       in
       let bnds__022_ =
         let arg__024_ = Positions.sexp_of_pos hash_semi_pos__023_ in
-        Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "hash_semi_pos"; arg__024_ ] :: bnds__022_
+        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "hash_semi_pos"; arg__024_ ] :: bnds__022_
+         : _ Stdlib.List.t)
       in
       Sexplib0.Sexp.List (Sexplib0.Sexp.Atom "Sexp_comment" :: bnds__022_)
       : comment -> Sexplib0.Sexp.t)
