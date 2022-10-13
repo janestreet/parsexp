@@ -15,7 +15,10 @@ let kind_to_stack
 ;;
 
 let make (type stack state parsed_value) kind mode make_value
-  : (module S with type parsed_value = parsed_value)
+  : (module S
+      with type parsed_value = parsed_value
+       and type State.t = (state, stack) Automaton_state.t
+       and type Stack.t = stack)
   =
   (module struct
     type nonrec parsed_value = parsed_value
@@ -59,7 +62,10 @@ let make (type stack state parsed_value) kind mode make_value
 ;;
 
 let make_eager (type stack state parsed_value) kind make_value
-  : (module S_eager with type parsed_value = parsed_value)
+  : (module S_eager
+      with type parsed_value = parsed_value
+       and type State.t = (state, stack) Automaton_state.t
+       and type Stack.t = stack)
   =
   (module struct
     type nonrec parsed_value = parsed_value

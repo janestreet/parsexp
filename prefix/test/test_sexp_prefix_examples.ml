@@ -21,6 +21,21 @@ let test cr mode s =
   done
 ;;
 
+let%expect_test "[Sexp_prefix.create] with [Many_and_positions]" =
+  let state, stack = Parsexp.Many_and_positions.(State.create (), Stack.empty) in
+  let stack = Parsexp.Many_and_positions.feed_string state "abc" stack in
+  let sexp_prefix = Sexp_prefix.create state stack in
+  print_s [%sexp (sexp_prefix : Sexp_prefix.t option)];
+  [%expect
+    {|
+    ((
+      ()
+      (Hole ((
+        (signified (Complete (prefix abc)))
+        (signifier_begin_offset 0)
+        (signifier_end_offset   3)))))) |}]
+;;
+
 let%expect_test "[Many]" =
   test CR Many {|a #;() ("b\r\n\x61 c") #| ; |# d|};
   [%expect

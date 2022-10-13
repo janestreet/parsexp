@@ -20,17 +20,73 @@ module type Parsexp = sig
   (** Exception raised in case of a parsing error *)
   exception Parse_error of Parse_error.t
 
-  module Single : Parser with type parsed_value = Sexp.t
-  module Many : Parser with type parsed_value = Sexp.t list
-  module Eager : Eager_parser with type parsed_value = Sexp.t
-  module Single_and_positions : Parser with type parsed_value = Sexp.t * Positions.t
-  module Many_and_positions : Parser with type parsed_value = Sexp.t list * Positions.t
-  module Eager_and_positions : Eager_parser with type parsed_value = Sexp.t * Positions.t
-  module Single_just_positions : Parser with type parsed_value = Positions.t
-  module Many_just_positions : Parser with type parsed_value = Positions.t
-  module Eager_just_positions : Eager_parser with type parsed_value = Positions.t
-  module Many_cst : Parser with type parsed_value = Cst.t_or_comment list
-  module Eager_cst : Eager_parser with type parsed_value = Cst.t_or_comment
+  module Single :
+    Parser
+    with type parsed_value = Sexp.t
+     and type State.t = (unit, Automaton_stack.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.t
+
+  module Many :
+    Parser
+    with type parsed_value = Sexp.t list
+     and type State.t = (unit, Automaton_stack.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.t
+
+  module Eager :
+    Eager_parser
+    with type parsed_value = Sexp.t
+     and type State.t = (unit, Automaton_stack.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.t
+
+  module Single_and_positions :
+    Parser
+    with type parsed_value = Sexp.t * Positions.t
+     and type State.t = (Positions.Builder.t, Automaton_stack.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.t
+
+  module Many_and_positions :
+    Parser
+    with type parsed_value = Sexp.t list * Positions.t
+     and type State.t = (Positions.Builder.t, Automaton_stack.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.t
+
+  module Eager_and_positions :
+    Eager_parser
+    with type parsed_value = Sexp.t * Positions.t
+     and type State.t = (Positions.Builder.t, Automaton_stack.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.t
+
+  module Single_just_positions :
+    Parser
+    with type parsed_value = Positions.t
+     and type State.t = (Positions.Builder.t, unit) Automaton_state.t
+     and type Stack.t = unit
+
+  module Many_just_positions :
+    Parser
+    with type parsed_value = Positions.t
+     and type State.t = (Positions.Builder.t, unit) Automaton_state.t
+     and type Stack.t = unit
+
+  module Eager_just_positions :
+    Eager_parser
+    with type parsed_value = Positions.t
+     and type State.t = (Positions.Builder.t, unit) Automaton_state.t
+     and type Stack.t = unit
+
+  module Many_cst :
+    Parser
+    with type parsed_value = Cst.t_or_comment list
+     and type State.t =
+           (Automaton_state.For_cst.t, Automaton_stack.For_cst.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.For_cst.t
+
+  module Eager_cst :
+    Eager_parser
+    with type parsed_value = Cst.t_or_comment
+     and type State.t =
+           (Automaton_state.For_cst.t, Automaton_stack.For_cst.t) Automaton_state.t
+     and type Stack.t = Automaton_stack.For_cst.t
 
   (*_ These type synonyms are introduced because ocaml <4.06
     do not support destructive substitutions with `type 'a t1 = t2`
