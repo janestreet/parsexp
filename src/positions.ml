@@ -95,7 +95,7 @@ let sexp_of_pos =
 
 [@@@end]
 
-let compare_pos = Caml.compare
+let compare_pos = Stdlib.compare
 let beginning_of_file = { line = 1; col = 0; offset = 0 }
 let shift_pos pos ~cols = { pos with col = pos.col + cols; offset = pos.offset + cols }
 
@@ -124,7 +124,7 @@ let sexp_of_range =
 
 [@@@end]
 
-let compare_range = Caml.compare
+let compare_range = Stdlib.compare
 
 let make_range_incl ~start_pos ~last_pos =
   { start_pos; end_pos = shift_pos last_pos ~cols:1 }
@@ -266,7 +266,7 @@ module Builder = struct
     t.initial_pos <- pos
   ;;
 
-  let[@inlined never] alloc_new_chunk t =
+  let[@inline never] alloc_new_chunk t =
     t.filled_chunks <- t.chunk :: t.filled_chunks;
     t.chunk <- Chunk.alloc ();
     t.chunk_pos <- 0
@@ -316,7 +316,7 @@ module Builder = struct
   ;;
 
   (* precondition: n >= 5 *)
-  let[@inlined never] add_gen_slow t n ~instr ~instr_bits =
+  let[@inline never] add_gen_slow t n ~instr ~instr_bits =
     long_shift t n;
     add_bits t instr ~num_bits:instr_bits
   ;;
@@ -428,7 +428,7 @@ end = struct
 
   let no_more () = raise_notrace No_more
 
-  let[@inlined never] fetch_chunk t =
+  let[@inline never] fetch_chunk t =
     match t.chunks with
     | [] -> assert false
     | chunk :: chunks ->
@@ -583,5 +583,5 @@ let to_list t =
 ;;
 
 let to_array t = to_list t |> Array.of_list
-let compare t1 t2 = Caml.compare (to_array t1) (to_array t2)
+let compare t1 t2 = Stdlib.compare (to_array t1) (to_array t2)
 let sexp_of_t t = sexp_of_array sexp_of_pos (to_array t)

@@ -26,7 +26,7 @@ let test_input (saw_state : Coverage.Saw_state.t) parser_input =
 
 (* Check that a value is unchanged after we round-trip some prefix of its string
    representation through [Prefix]. *)
-let%expect_test _ =
+let%expect_test (_ [@tags "64-bits-only"]) =
   require_does_not_raise [%here] (fun () ->
     Coverage.with_state_coverage ~f:(fun saw_state ->
       Base_quickcheck.Test.run_exn (module Sexp_string) ~f:(test_input saw_state)));

@@ -11,10 +11,10 @@ build: [
 ]
 depends: [
   "ocaml" {>= "4.08.0"}
-  "base"
   "sexplib0"
   "dune"     {>= "2.0.0"}
 ]
+available: arch != "arm32" & arch != "x86_32"
 synopsis: "S-expression parsing library"
 description: "
 This library provides generic parsers for parsing S-expressions from

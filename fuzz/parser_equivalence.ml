@@ -161,7 +161,7 @@ let main ~nice_exn ~property =
               (str : string)
             , ((name1 : string), (v1 : a or_exn))
             , ((name2 : string), (v2 : a or_exn))]
-        else Caml.raise_notrace Caml.Exit
+        else Stdlib.raise_notrace Stdlib.Exit
     in
     match property with
     | 0 ->
@@ -306,14 +306,14 @@ let main ~nice_exn ~property =
 ;;
 
 let nice_exn =
-  match Caml.Sys.getenv "NICE_EXN" with
-  | exception (Not_found_s _ | Caml.Not_found) -> false
+  match Stdlib.Sys.getenv "NICE_EXN" with
+  | exception (Not_found_s _ | Stdlib.Not_found) -> false
   | (_ : string) -> true
 ;;
 
 let property =
-  match Caml.Sys.getenv "PROP" with
-  | exception (Not_found_s _ | Caml.Not_found) -> assert false
+  match Stdlib.Sys.getenv "PROP" with
+  | exception (Not_found_s _ | Stdlib.Not_found) -> assert false
   | s -> Int.of_string s
 ;;
 

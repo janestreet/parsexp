@@ -7,16 +7,17 @@ let test s =
   let parsexp = Single.parse_string_exn s in
   if Sexp.equal sexplib parsexp
   then (
-    Caml.print_string "same\n";
+    Stdlib.print_string "same\n";
     print_s [%sexp (parsexp : Sexp.t)])
   else (
-    Caml.print_string "FAILURE\n";
+    Stdlib.print_string "FAILURE\n";
     print_s [%sexp ~~(sexplib : Sexp.t)];
     print_s [%sexp ~~(parsexp : Sexp.t)]);
   let sexplib_lexer = Sexplib.Sexp.scan_sexp (Lexing.from_string s) in
   if not (Sexp.equal sexplib sexplib_lexer)
   then (
-    Caml.print_string "\nNote: the various sexplib parsers disagree between themselves\n";
+    Stdlib.print_string
+      "\nNote: the various sexplib parsers disagree between themselves\n";
     print_s [%sexp ~~(sexplib_lexer : Sexp.t)])
 ;;
 
@@ -60,10 +61,10 @@ let test_cont_state input =
   in
   if Sexp.equal sexplib parsexp
   then (
-    Caml.print_string "same\n";
+    Stdlib.print_string "same\n";
     print_s [%sexp (parsexp : Sexp.t)])
   else (
-    Caml.print_string "FAILURE\n";
+    Stdlib.print_string "FAILURE\n";
     print_s [%sexp ~~(sexplib : Sexp.t)];
     print_s [%sexp ~~(parsexp : Sexp.t)])
 ;;

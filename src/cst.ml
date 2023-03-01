@@ -114,9 +114,9 @@ and sexp_of_comment =
 
 [@@@end]
 
-let compare = Caml.compare
-let compare_t_or_comment = Caml.compare
-let compare_comment = Caml.compare
+let compare = Stdlib.compare
+let compare_t_or_comment = Stdlib.compare
+let compare_comment = Stdlib.compare
 
 module Forget = struct
   (* In cps to prevent non-tail recursion.

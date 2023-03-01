@@ -5,13 +5,15 @@ type 'a conv_result = ('a, Conv_error.t) Result.t [@@deriving sexp_of]
 let test a_of_sexp input =
   match Conv_single.parse_string input a_of_sexp with
   | Ok _ -> ()
-  | Error error -> Conv_error.report Caml.Format.std_formatter error ~filename:"<string>"
+  | Error error ->
+    Conv_error.report Stdlib.Format.std_formatter error ~filename:"<string>"
 ;;
 
 let test_many a_of_sexp input =
   match Conv_many.parse_string input a_of_sexp with
   | Ok _ -> ()
-  | Error error -> Conv_error.report Caml.Format.std_formatter error ~filename:"<string>"
+  | Error error ->
+    Conv_error.report Stdlib.Format.std_formatter error ~filename:"<string>"
 ;;
 
 let%expect_test "parsing errors" =

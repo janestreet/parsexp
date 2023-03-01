@@ -56,7 +56,7 @@ module Char_class = struct
               (Char.of_int_exn x)
               (Option.value (List.last l) ~default:x |> Char.of_int_exn))
       in
-      let open Caml.Format in
+      let open Stdlib.Format in
       printf "@[<10>class %2d:%t@]@." cl (fun ppf ->
         List.iter groups ~f:(fprintf ppf "@ %s"))
     done;
@@ -136,7 +136,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
   in
   if not matches_expected
   then
-    Caml.Format.printf
+    Stdlib.Format.printf
       "round-trip failure:@.input:    %S@.expected: %a@.got:      %a@.@."
       str
       Sexp.pp_hum
@@ -156,7 +156,7 @@ let test_one_case_dealing_with_a_single_sexp (str, expected) =
   in
   if not matches_sexplib
   then
-    Caml.Format.printf
+    Stdlib.Format.printf
       "parsexp and sexplib disagree:@.input:    %S@.parsexp:  %a@.sexplib:  %a@.@."
       str
       Sexp.pp_hum
@@ -193,7 +193,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
   in
   if not matches_expected
   then
-    Caml.Format.printf
+    Stdlib.Format.printf
       "round-trip failure:@.input:    %S@.expected: %a@.got:      %a@.@."
       str
       Sexp.pp_hum
@@ -213,7 +213,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
   in
   if not matches_expected
   then
-    Caml.Format.printf
+    Stdlib.Format.printf
       "sexplib does not match expected:@.input:    %S@.expected: %a@.sexplib:      %a@.@."
       str
       Sexp.pp_hum
@@ -225,7 +225,7 @@ let test_one_case_dealing_with_many_sexps (str, expected) =
 let witness_for_class cl =
   let rec loop i =
     if i = 256
-    then  raise Caml.Not_found;
+    then  raise Stdlib.Not_found;
     if Char_class.of_char (Char.of_int_exn i) = cl then Char.of_int_exn i else loop (i + 1)
   in
   let ch = loop 0 in
@@ -618,7 +618,7 @@ let%expect_test "coverage" =
       in
       if not suppress
       then
-        Caml.Format.printf
+        Stdlib.Format.printf
           "the various sexplib parsers disagree between themselves on this \
            case:@.input:         %S@.sexplib:       %a@.sexplib_lexer: %a@.@."
           input
