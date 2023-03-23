@@ -423,8 +423,7 @@ let%expect_test "eager parser semantics" =
                (exn : int * Exn.t)
                (result_from_many : Sexp.t list)]
        | Error _bad -> ())
-    | exception bad_thing ->
-      print_s [%message "Bad" (input : string) (bad_thing : Exn.t)]);
+    | exception bad_thing -> print_s [%message "Bad" (input : string) (bad_thing : Exn.t)]);
   [%expect {| testing 111151 inputs |}]
 ;;
 

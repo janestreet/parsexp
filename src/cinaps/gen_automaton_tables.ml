@@ -59,7 +59,8 @@ let print_named_transition (id, tr) =
       | End_block_comment ->
         pr "  let stack = end_block_comment state char stack in";
         pr
-          "  set_automaton_state state (if block_comment_depth state <> 0 then %d else %d);"
+          "  set_automaton_state state (if block_comment_depth state <> 0 then %d else \
+           %d);"
           (Automaton.State.to_int (Block_comment Normal))
           (Automaton.State.to_int Whitespace));
      pr

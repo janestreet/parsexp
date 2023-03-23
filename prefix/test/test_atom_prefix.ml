@@ -100,7 +100,9 @@ let test_every_prefix (saw_state : Coverage.Saw_state.t) ~parser_input ~verbose 
 
 let%expect_test _ =
   Tilde_f.run
-    (let%bind.Tilde_f () = Tilde_f.of_unlabeled (require_does_not_raise [%here]) in
+    (let%bind.Tilde_f () =
+       Tilde_f.of_unlabeled (fun f -> require_does_not_raise [%here] (fun () -> f ()))
+     in
      let%bind.Tilde_f state_coverage = Coverage.with_state_coverage in
      let%bind.Tilde_f parser_input = Base_quickcheck.Test.run_exn (module Atom_string) in
      test_every_prefix state_coverage ~parser_input ~verbose:false);

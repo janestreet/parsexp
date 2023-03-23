@@ -36,7 +36,6 @@ let () =
 
 (* Obj.tag is a C call so the compiler can't consider the value as dead-code *)
 let don't_optimize_out x = ignore (Obj.tag (Obj.repr x) : int)
-
 let%bench "sexplib" = don't_optimize_out (Sexplib.Sexp.of_string data : Sexp.t)
 
 let%bench "sexplib.annotated" =
