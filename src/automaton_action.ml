@@ -289,7 +289,12 @@ let sexp_added : type u s. (u, s) Automaton_state.t -> s -> delta:int -> s =
 
 let rec make_list acc : Automaton_stack.t -> Automaton_stack.t = function
   | Empty -> assert false
-  | Open stack -> Sexp (List acc, stack)
+  | Open stack ->
+    (* [opaque_identity] is needed to prevent the compiler from sharing multiple copies
+       of [List []] after inlining. Such sharing is problematic because it prevents us
+       from computing the correct sexp locations, since we base that on
+       physical identity. *)
+    Sexp (List (Sys.opaque_identity acc), stack)
   | Sexp (sexp, stack) -> make_list (sexp :: acc) stack
 ;;
 
