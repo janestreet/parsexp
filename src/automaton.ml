@@ -5,7 +5,7 @@ include Automaton_state
 let feed (type u s) (state : (u, s) Automaton_state.t) char (stack : s) : s =
   let idx = (automaton_state state lsl 8) lor Char.code char in
   Automaton_tables.transitions.(idx).f state char stack
-[@@inline always]
+  [@@inline always]
 ;;
 
 let feed_eoi (type u s) (state : (u, s) Automaton_state.t) (stack : s) : s =

@@ -66,18 +66,18 @@ end
 
 let block_comment_transition : State.Block_comment.t * char -> Block_comment_transition.t
   = function
-    | Quoted_string state, c ->
-      (match quoted_string_transition In_block_comment (state, c) with
-       | End_of_quoted_string -> T (Add_token_char, Normal)
-       | T (action, state) -> T (action, Quoted_string state)
-       | E (action, state) -> E (action, Quoted_string state)
-       | Error error -> Error error)
-    | After_hash, '|' -> T (Start_block_comment, Normal)
-    | After_pipe, '#' -> End_comment
-    | _, '"' -> T (Add_token_char, Quoted_string Normal)
-    | _, '|' -> T (Add_token_char, After_pipe)
-    | _, '#' -> T (Add_token_char, After_hash)
-    | _, _ -> T (Add_token_char, Normal)
+  | Quoted_string state, c ->
+    (match quoted_string_transition In_block_comment (state, c) with
+     | End_of_quoted_string -> T (Add_token_char, Normal)
+     | T (action, state) -> T (action, Quoted_string state)
+     | E (action, state) -> E (action, Quoted_string state)
+     | Error error -> Error error)
+  | After_hash, '|' -> T (Start_block_comment, Normal)
+  | After_pipe, '#' -> End_comment
+  | _, '"' -> T (Add_token_char, Quoted_string Normal)
+  | _, '|' -> T (Add_token_char, After_pipe)
+  | _, '#' -> T (Add_token_char, After_hash)
+  | _, _ -> T (Add_token_char, Normal)
 ;;
 
 let transition : State.t * char -> Transition.t = function

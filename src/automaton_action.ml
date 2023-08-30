@@ -309,21 +309,21 @@ let add_comment_to_stack_cst comment (stack : Automaton_stack.For_cst.t)
 
 let add_sexp_to_stack_cst sexp : Automaton_stack.For_cst.t -> Automaton_stack.For_cst.t
   = function
-    | In_sexp_comment { hash_semi_pos; rev_comments; stack } ->
-      let comment : Cst.comment =
-        Sexp_comment { hash_semi_pos; comments = List.rev rev_comments; sexp }
-      in
-      add_comment_to_stack_cst comment stack
-    | stack -> T_or_comment (Sexp sexp, stack)
+  | In_sexp_comment { hash_semi_pos; rev_comments; stack } ->
+    let comment : Cst.comment =
+      Sexp_comment { hash_semi_pos; comments = List.rev rev_comments; sexp }
+    in
+    add_comment_to_stack_cst comment stack
+  | stack -> T_or_comment (Sexp sexp, stack)
 ;;
 
 let rec make_list_cst end_pos acc : Automaton_stack.For_cst.t -> Automaton_stack.For_cst.t
   = function
-    | T_or_comment (t, stack) -> make_list_cst end_pos (t :: acc) stack
-    | Open (start_pos, stack) ->
-      let sexp : Cst.t = List { loc = { start_pos; end_pos }; elements = acc } in
-      add_sexp_to_stack_cst sexp stack
-    | Empty | In_sexp_comment _ -> assert false
+  | T_or_comment (t, stack) -> make_list_cst end_pos (t :: acc) stack
+  | Open (start_pos, stack) ->
+    let sexp : Cst.t = List { loc = { start_pos; end_pos }; elements = acc } in
+    add_sexp_to_stack_cst sexp stack
+  | Empty | In_sexp_comment _ -> assert false
 ;;
 
 let closing : type u s. (u, s) Automaton_state.t -> char -> s -> s =

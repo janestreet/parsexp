@@ -16,9 +16,9 @@ let kind_to_stack
 
 let make (type stack state parsed_value) kind mode make_value
   : (module S
-      with type parsed_value = parsed_value
-       and type State.t = (state, stack) Automaton_state.t
-       and type Stack.t = stack)
+       with type parsed_value = parsed_value
+        and type State.t = (state, stack) Automaton_state.t
+        and type Stack.t = stack)
   =
   (module struct
     type nonrec parsed_value = parsed_value
@@ -63,9 +63,9 @@ let make (type stack state parsed_value) kind mode make_value
 
 let make_eager (type stack state parsed_value) kind make_value
   : (module S_eager
-      with type parsed_value = parsed_value
-       and type State.t = (state, stack) Automaton_state.t
-       and type Stack.t = stack)
+       with type parsed_value = parsed_value
+        and type State.t = (state, stack) Automaton_state.t
+        and type Stack.t = stack)
   =
   (module struct
     type nonrec parsed_value = parsed_value
@@ -129,11 +129,11 @@ let make_eager (type stack state parsed_value) kind make_value
         lexbuf.lex_curr_pos <- p;
         lexbuf.lex_start_pos <- p;
         lexbuf.lex_curr_p
-        <- { lexbuf.lex_curr_p with
-             pos_lnum = pos.line
-           ; pos_cnum = pos.offset
-           ; pos_bol = pos.offset - pos.col
-           }
+          <- { lexbuf.lex_curr_p with
+               pos_lnum = pos.line
+             ; pos_cnum = pos.offset
+             ; pos_bol = pos.offset - pos.col
+             }
       ;;
 
       let rec feed_lexbuf t (lexbuf : Lexing.lexbuf) stack =

@@ -32,7 +32,7 @@ type pos =
   { line : int (** Line number. The first line has number [1].               *)
   ; col : int (** Column number. The first column has number [0].           *)
   ; offset : int
-  (** Number of bytes from the beginning of the input. The first
+      (** Number of bytes from the beginning of the input. The first
       byte has offset [0]. *)
   }
 [@@deriving_inline sexp_of]

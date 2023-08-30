@@ -13,8 +13,8 @@ type t =
 [@@deriving enumerate, compare, sexp_of]
 
 include Comparator.Make (struct
-    type nonrec t = t [@@deriving compare, sexp_of]
-  end)
+  type nonrec t = t [@@deriving compare, sexp_of]
+end)
 
 let to_int t =
   let rec loop i t l =

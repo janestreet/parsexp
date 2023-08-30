@@ -55,7 +55,7 @@ let test_cont_state input =
     ignore
       (String.fold input ~init:Private.Automaton.Stack.empty ~f:(fun stack ch ->
          Private.Automaton.feed state ch stack)
-       : Private.Automaton.Stack.t);
+        : Private.Automaton.Stack.t);
     let old_state = Private.Automaton.old_parser_cont_state state in
     [%sexp Cont (old_state : Old_parser_cont_state.t)]
   in

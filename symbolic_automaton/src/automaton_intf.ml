@@ -47,7 +47,7 @@ module Transition = struct
     | E of Epsilon_action.t * State.t
     | Error of Parse_error_reason.t
     | End_block_comment
-    (* can't be a normal transition, as the new state isn't known
+      (* can't be a normal transition, as the new state isn't known
        statically *)
   [@@deriving compare]
 end

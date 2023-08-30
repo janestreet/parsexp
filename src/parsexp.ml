@@ -48,9 +48,9 @@ module Many_cst = (val cst Many Automaton_stack.For_cst.get_many)
 
 module Eager_cst =
   (val Parser.make_eager Cst (fun _ stack ->
-     match Automaton_stack.For_cst.get_many stack with
-     | [ sexp ] -> sexp
-     | _ -> assert false))
+         match Automaton_stack.For_cst.get_many stack with
+         | [ sexp ] -> sexp
+         | _ -> assert false))
 
 type 'a id = 'a
 type sexp_list = Sexp.t list

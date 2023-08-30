@@ -159,8 +159,8 @@ let main ~nice_exn ~property =
           raise_s
             [%sexp
               (str : string)
-            , ((name1 : string), (v1 : a or_exn))
-            , ((name2 : string), (v2 : a or_exn))]
+              , ((name1 : string), (v1 : a or_exn))
+              , ((name2 : string), (v2 : a or_exn))]
         else Stdlib.raise_notrace Stdlib.Exit
     in
     match property with

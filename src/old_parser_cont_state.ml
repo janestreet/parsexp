@@ -11,13 +11,13 @@ type t =
 
 let sexp_of_t =
   (function
-    | Parsing_toplevel_whitespace -> Sexplib0.Sexp.Atom "Parsing_toplevel_whitespace"
-    | Parsing_nested_whitespace -> Sexplib0.Sexp.Atom "Parsing_nested_whitespace"
-    | Parsing_atom -> Sexplib0.Sexp.Atom "Parsing_atom"
-    | Parsing_list -> Sexplib0.Sexp.Atom "Parsing_list"
-    | Parsing_sexp_comment -> Sexplib0.Sexp.Atom "Parsing_sexp_comment"
-    | Parsing_block_comment -> Sexplib0.Sexp.Atom "Parsing_block_comment"
-                               : t -> Sexplib0.Sexp.t)
+   | Parsing_toplevel_whitespace -> Sexplib0.Sexp.Atom "Parsing_toplevel_whitespace"
+   | Parsing_nested_whitespace -> Sexplib0.Sexp.Atom "Parsing_nested_whitespace"
+   | Parsing_atom -> Sexplib0.Sexp.Atom "Parsing_atom"
+   | Parsing_list -> Sexplib0.Sexp.Atom "Parsing_list"
+   | Parsing_sexp_comment -> Sexplib0.Sexp.Atom "Parsing_sexp_comment"
+   | Parsing_block_comment -> Sexplib0.Sexp.Atom "Parsing_block_comment"
+    : t -> Sexplib0.Sexp.t)
 ;;
 
 [@@@end]

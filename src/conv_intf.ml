@@ -50,11 +50,11 @@ module type Conv = sig
   module type S = S
 
   module Make
-      (Mode : Mode)
-      (Sexp_parser : Parser.S with type parsed_value = Mode.parsed_sexp)
-      (Positions_parser : Parser.S with type parsed_value = Positions.t) :
+    (Mode : Mode)
+    (Sexp_parser : Parser.S with type parsed_value = Mode.parsed_sexp)
+    (Positions_parser : Parser.S with type parsed_value = Positions.t) :
     S
-    with type parsed_sexp := Mode.parsed_sexp
-    with type chunk_to_conv := Mode.chunk_to_conv
-    with type 'a res := 'a Mode.res
+      with type parsed_sexp := Mode.parsed_sexp
+      with type chunk_to_conv := Mode.chunk_to_conv
+      with type 'a res := 'a Mode.res
 end

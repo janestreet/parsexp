@@ -13,8 +13,8 @@ module Sharing = struct
     let cache = Hashtbl.Poly.create () in
     ( cache
     , fun x ->
-      if not (Hashtbl.mem cache x)
-      then Hashtbl.add_exn cache ~key:x ~data:(Hashtbl.length cache) )
+        if not (Hashtbl.mem cache x)
+        then Hashtbl.add_exn cache ~key:x ~data:(Hashtbl.length cache) )
   ;;
 
   let share (table : Table.t) =
@@ -47,7 +47,7 @@ let print_named_transition (id, tr) =
        "let tr_%02d_f state %schar stack ="
        id
        (if Option.is_none action
-        && not ([%compare.equal: Table.Goto_state.t] goto End_block_comment)
+           && not ([%compare.equal: Table.Goto_state.t] goto End_block_comment)
         then "_"
         else "");
      List.iter eps_actions ~f:(pr "  let stack = %s state stack in");

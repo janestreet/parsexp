@@ -12,10 +12,10 @@ open! Import
 module Signified = struct
   type t =
     | Complete of { prefix : string }
-    (** [Complete] means [prefix] is all the signified from the start of the atom to
+        (** [Complete] means [prefix] is all the signified from the start of the atom to
         the end of the input seen so far. *)
     | Incomplete of { prefix_of_prefix : string }
-    (** [Incomplete] means the parser is uncertain how to handle some suffix of the input
+        (** [Incomplete] means the parser is uncertain how to handle some suffix of the input
         it has seen so far. E.g. midway through a backslash-escape sequence *)
   [@@deriving compare, sexp_of]
 
