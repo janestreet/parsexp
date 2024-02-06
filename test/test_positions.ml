@@ -224,3 +224,27 @@ let%expect_test "find_sub_sexp_phys" =
               }])));
   [%expect {| |}]
 ;;
+
+let%expect_test "advance_sexp_exn" =
+  let input = {|() (abc) (1 (2 (3)))
+  123 (+ x y)
+|} in
+  let sexps, positions = Many_and_positions.parse_string_exn input in
+  let iterator = Positions.Iterator.create positions in
+  List.iter sexps ~f:(fun sexp ->
+    let ({ start_pos; end_pos } : Positions.range) =
+      Positions.Iterator.advance_sexp_exn iterator sexp
+    in
+    let pos = start_pos.offset in
+    let len = end_pos.offset - start_pos.offset in
+    let sub = String.sub input ~pos ~len in
+    let sexp_from_loc = Parsexp.Single.parse_string_exn sub in
+    Expect_test_helpers_core.require_equal [%here] (module Sexp) sexp sexp_from_loc;
+    print_s [%sexp (sexp : Sexp.t)]);
+  [%expect {|
+    ()
+    (abc)
+    (1 (2 (3)))
+    123
+    (+ x y) |}]
+;;

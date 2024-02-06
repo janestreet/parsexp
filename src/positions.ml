@@ -378,6 +378,14 @@ end
 
 type positions = t
 
+let rec sub_sexp_count (sexp : Sexp.t) =
+  match sexp with
+  | Atom _ -> 1
+  | List l -> List.fold_left l ~init:1 ~f:(fun acc x -> acc + sub_sexp_count x)
+;;
+
+let sexp_positions_count sexp = sub_sexp_count sexp * 2
+
 module Iterator : sig
   type t
 
@@ -388,6 +396,7 @@ module Iterator : sig
   (* [advance t ~skip] ignores [skip] saved positions and returns the next saved position.
      Raises [No_more] when reaching the end of the position set. *)
   val advance_exn : t -> skip:int -> pos
+  val advance_sexp_exn : t -> Sexp.t -> range
 end = struct
   type t =
     { mutable chunk : Chunk.t
@@ -514,6 +523,13 @@ end = struct
       else advance t ~skip:(skip - 1) ~offset_shift:0 ~offset_shift_num_bits:0
     | None -> advance t ~skip ~offset_shift:0 ~offset_shift_num_bits:0
   ;;
+
+  let advance_sexp_exn t sexp =
+    let positions_count = sexp_positions_count sexp in
+    let start_pos = advance_exn t ~skip:0 in
+    let last_pos = advance_exn t ~skip:(positions_count - 2) in
+    make_range_incl ~start_pos ~last_pos
+  ;;
 end
 
 let find t a b =
@@ -525,12 +541,6 @@ let find t a b =
     make_range_incl ~start_pos ~last_pos
   with
   | Iterator.No_more -> failwith "Parsexp.Position.find"
-;;
-
-let rec sub_sexp_count (sexp : Sexp.t) =
-  match sexp with
-  | Atom _ -> 1
-  | List l -> List.fold_left l ~init:1 ~f:(fun acc x -> acc + sub_sexp_count x)
 ;;
 
 module Sexp_search = struct

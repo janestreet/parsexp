@@ -106,6 +106,12 @@ module type Parsexp = sig
        and type parsed_sexp := sexp_list
        and type chunk_to_conv := Sexp.t
 
+  module Conv_many_and_locations :
+    Conv
+      with type 'a res := 'a list
+       and type parsed_sexp := sexp_list * Positions.t
+       and type chunk_to_conv := Sexp.t * Positions.range
+
   module Conv_many_at_once :
     Conv
       with type 'a res := 'a id

@@ -81,6 +81,28 @@ module Conv_many =
     (Many)
     (Many_just_positions)
 
+module Conv_many_and_locations =
+  Conv.Make
+    (struct
+      type 'a res = 'a list
+      type parsed_sexp = Sexp.t list * Positions.t
+      type chunk_to_conv = Sexp.t * Positions.range
+
+      let find positions (s, _) ~sub =
+        Positions.find_sub_sexp_in_list_phys positions s ~sub
+      ;;
+
+      let apply_f (sexps, positions) ~f =
+        let iter = Positions.Iterator.create positions in
+        List.rev
+          (List.rev_map sexps ~f:(fun sexp ->
+             let location = Positions.Iterator.advance_sexp_exn iter sexp in
+             f (sexp, location)))
+      ;;
+    end)
+    (Many_and_positions)
+    (Many_just_positions)
+
 module Conv_many_at_once =
   Conv.Make
     (struct

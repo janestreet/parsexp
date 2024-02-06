@@ -146,5 +146,9 @@ module Iterator : sig
       next position and return it.
       Raises [No_more] when reaching the end of the position set. *)
   val advance_exn : t -> skip:int -> pos
+
+  (** Advance over a whole s-expression worth of positions. Returns the position range
+      corresponding to that s-expression. *)
+  val advance_sexp_exn : t -> Sexp.t -> range
 end
 with type positions := t

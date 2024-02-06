@@ -91,3 +91,24 @@ let%expect_test "conversion errors" =
     exception (Failure "int_of_sexp: (Failure int_of_string)")
   |}]
 ;;
+
+let%expect_test "Conv_many_and_locations" =
+  let input = {|() (abc) (1 (2 (3)))
+  123 (+ x y)
+|} in
+  let _ =
+    Conv_many_and_locations.parse_string_exn input (fun (sexp, { start_pos; end_pos }) ->
+      let pos = start_pos.offset in
+      let len = end_pos.offset - start_pos.offset in
+      let sub = String.sub input ~pos ~len in
+      let sexp_from_loc = Parsexp.Single.parse_string_exn sub in
+      Expect_test_helpers_core.require_equal [%here] (module Sexp) sexp sexp_from_loc;
+      print_s [%sexp (sexp : Sexp.t)])
+  in
+  [%expect {|
+    ()
+    (abc)
+    (1 (2 (3)))
+    123
+    (+ x y) |}]
+;;
