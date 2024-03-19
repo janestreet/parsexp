@@ -22,7 +22,7 @@ let%expect_test "escape sequence in block comment" =
             (col    12)
             (offset 12)))))
         (comment "#| \"\\255\" |#"))))
-  |}]
+    |}]
 ;;
 
 let%expect_test "quoted atom" =
@@ -43,5 +43,5 @@ let%expect_test "quoted atom" =
             (offset 10)))))
         (atom "foo bar")
         (unescaped ("\"foo bar\"")))))
-  |}]
+    |}]
 ;;

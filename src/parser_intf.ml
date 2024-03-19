@@ -126,10 +126,16 @@ module type S_eager = sig
         raises. In any case, if the end of input is reached while parsing an incomplete
         s-expression such as [(abc], error is raised.
 
+        [reraise_notrace] controls whether or not the exceptions raised by [f] are
+        reraised without a backtrace. ([false]: with, [true]: without)
+        Generally you should pass [true] if you're using [raise_nontrace] in [f],
+        especially if using exceptions for control flow.
+
         [f] must not save the read-only parser state it receives to access it after
         returning. It is unspecified what values it will read if it does so. *)
     val create
       :  ?pos:Positions.pos
+      -> ?reraise_notrace:bool (** default: false *)
       -> ?no_sexp_is_error:bool (** default: false *)
       -> (Read_only.t -> parsed_value -> unit)
       -> t

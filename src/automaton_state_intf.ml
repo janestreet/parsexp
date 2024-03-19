@@ -51,6 +51,7 @@ and Mode : sig
     | Many
     | Eager of
         { got_sexp : ('u, 's) State.t -> 's -> 's
+        ; reraise_notrace : bool
         ; mutable no_sexp_is_error : bool
         }
 end =

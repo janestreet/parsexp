@@ -33,7 +33,8 @@ let%expect_test "[Sexp_prefix.create] with [Many_and_positions]" =
       (Hole ((
         (signified (Complete (prefix abc)))
         (signifier_begin_offset 0)
-        (signifier_end_offset   3)))))) |}]
+        (signifier_end_offset   3))))))
+    |}]
 ;;
 
 let%expect_test "[Many]" =
@@ -231,7 +232,8 @@ let%expect_test "[Many]" =
       (Hole ((
         (signified (Complete (prefix d)))
         (signifier_begin_offset 31)
-        (signifier_end_offset   32)))))) |}]
+        (signifier_end_offset   32))))))
+    |}]
 ;;
 
 let%expect_test "deep nesting" =
@@ -279,7 +281,8 @@ let%expect_test "deep nesting" =
     ((() (In_list (((((a)))) (Hole ())))))
 
     ((((a))))│
-    (((((((a))))) (Hole ()))) |}]
+    (((((((a))))) (Hole ())))
+    |}]
 ;;
 
 let%expect_test "only [Many] mode" =
@@ -288,12 +291,21 @@ let%expect_test "only [Many] mode" =
     {|
     │
     (* require-failed: lib/parsexp/prefix/test/test_sexp_prefix_examples.ml:LINE:COL. *)
-    ("unexpectedly raised" (Failure "The automaton must be in [Many] mode.")) |}];
-  test Comment (Eager { got_sexp = (fun _ stack -> stack); no_sexp_is_error = false }) "";
+    ("unexpectedly raised" (Failure "The automaton must be in [Many] mode."))
+    |}];
+  test
+    Comment
+    (Eager
+       { got_sexp = (fun _ stack -> stack)
+       ; reraise_notrace = false
+       ; no_sexp_is_error = false
+       })
+    "";
   [%expect
     {|
     │
     (* require-failed: lib/parsexp/prefix/test/test_sexp_prefix_examples.ml:LINE:COL. *)
-    ("unexpectedly raised" (Failure "The automaton must be in [Many] mode.")) |}];
+    ("unexpectedly raised" (Failure "The automaton must be in [Many] mode."))
+    |}];
   ignore ()
 ;;

@@ -27,14 +27,14 @@ let%expect_test "single" =
       ((line 1) (col 5) (offset 5))
       ((line 1) (col 5) (offset 5))
       ((line 1) (col 6) (offset 6))))
-  |}];
+    |}];
   test "; plop\natom";
   [%expect
     {|
     (Ok (
       ((line 2) (col 0) (offset 7))
       ((line 2) (col 3) (offset 10))))
-  |}];
+    |}];
   test "(1 (2 3)(4 5))";
   [%expect
     {|
@@ -54,7 +54,8 @@ let%expect_test "single" =
       ((line 1) (col 11) (offset 11))
       ((line 1) (col 11) (offset 11))
       ((line 1) (col 12) (offset 12))
-      ((line 1) (col 13) (offset 13)))) |}]
+      ((line 1) (col 13) (offset 13))))
+    |}]
 ;;
 
 let%expect_test "many" =
@@ -72,7 +73,7 @@ let%expect_test "many" =
       ((line 1) (col 7) (offset 7))
       ((line 1) (col 7) (offset 7))
       ((line 1) (col 8) (offset 8))))
-  |}];
+    |}];
   test_many "(1 2 3)\nhello";
   [%expect
     {|
@@ -87,7 +88,7 @@ let%expect_test "many" =
       ((line 1) (col 6) (offset 6))
       ((line 2) (col 0) (offset 8))
       ((line 2) (col 4) (offset 12))))
-  |}];
+    |}];
   test_many "(1 2)(3)";
   [%expect
     {|
@@ -101,5 +102,6 @@ let%expect_test "many" =
       ((line 1) (col 5) (offset 5))
       ((line 1) (col 6) (offset 6))
       ((line 1) (col 6) (offset 6))
-      ((line 1) (col 7) (offset 7)))) |}]
+      ((line 1) (col 7) (offset 7))))
+    |}]
 ;;

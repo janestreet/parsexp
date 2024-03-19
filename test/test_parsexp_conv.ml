@@ -27,7 +27,7 @@ let%expect_test "parsing errors" =
     File "<string>", line 2, character 6:
     Error: s-expression parsing error;
     unclosed parentheses at end of input
-  |}];
+    |}];
   test [%of_sexp: int list] {|
 (1 2 "abc)|};
   [%expect
@@ -35,7 +35,7 @@ let%expect_test "parsing errors" =
     File "<string>", line 2, character 10:
     Error: s-expression parsing error;
     unterminated quoted string
-  |}];
+    |}];
   test_many [%of_sexp: int list] {|
 (1 2 3)
 "a|};
@@ -44,7 +44,7 @@ let%expect_test "parsing errors" =
     File "<string>", line 3, character 2:
     Error: s-expression parsing error;
     unterminated quoted string
-  |}]
+    |}]
 ;;
 
 let%expect_test "conversion errors" =
@@ -59,7 +59,7 @@ let%expect_test "conversion errors" =
     File "<string>", line 2, characters 7-10:
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: (Failure int_of_string)")
-  |}];
+    |}];
   test [%of_sexp: int list] {|
 (1 2 (1 2 3))
 |};
@@ -68,7 +68,7 @@ let%expect_test "conversion errors" =
     File "<string>", line 2, characters 5-12:
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: atom needed")
-  |}];
+    |}];
   test [%of_sexp: int list] {|
 (1 2 (1
 2
@@ -79,7 +79,7 @@ let%expect_test "conversion errors" =
     File "<string>", line 2, characters 5-12:
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: atom needed")
-  |}];
+    |}];
   test_many [%of_sexp: int list] {|
 (1 2 3)
 (a)
@@ -89,7 +89,7 @@ let%expect_test "conversion errors" =
     File "<string>", line 3, characters 1-2:
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: (Failure int_of_string)")
-  |}]
+    |}]
 ;;
 
 let%expect_test "Conv_many_and_locations" =
@@ -110,5 +110,6 @@ let%expect_test "Conv_many_and_locations" =
     (abc)
     (1 (2 (3)))
     123
-    (+ x y) |}]
+    (+ x y)
+    |}]
 ;;

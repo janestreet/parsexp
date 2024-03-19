@@ -236,7 +236,7 @@ let reset_positions : type u s. (u, s) Automaton_state.t -> unit =
 let toplevel_sexp_or_comment_added state stack ~delta =
   match state.mode with
   | Single | Many -> stack
-  | Eager { got_sexp = f; _ } ->
+  | Eager { got_sexp = f; reraise_notrace; _ } ->
     (* Modify the offset so that [f] get a state pointing to the end of the current
        s-expression *)
     let saved_offset = state.offset in
@@ -245,7 +245,7 @@ let toplevel_sexp_or_comment_added state stack ~delta =
     (match f state stack with
      | exception e ->
        set_error_state state;
-       raise e
+       if reraise_notrace then raise_notrace e else raise e
      | stack ->
        (* This assert is not a full protection against the user mutating the state but
           it should catch most cases. *)

@@ -27,10 +27,12 @@ let%expect_test "Returns the incorrect sexp" =
   print_endline ("| " ^ underline);
   [%expect {|
     | ((name"")(numbers())(opt()))
-    |                         ^^ |}];
+    |                         ^^
+    |}];
   print_s [%sexp (range : Parsexp.Positions.range)];
   [%expect
     {|
     ((start_pos ((line 1) (col 24) (offset 24)))
-     (end_pos ((line 1) (col 26) (offset 26)))) |}]
+     (end_pos ((line 1) (col 26) (offset 26))))
+    |}]
 ;;

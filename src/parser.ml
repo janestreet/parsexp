@@ -87,13 +87,16 @@ let make_eager (type stack state parsed_value) kind make_value
 
       include Read_only
 
-      let create ?pos ?(no_sexp_is_error = false) f =
+      let create ?pos ?(reraise_notrace = false) ?(no_sexp_is_error = false) f =
         let got_sexp state stack =
           let parsed_value = make_value state stack in
           f state parsed_value;
           Stack.empty
         in
-        A.create ?initial_pos:pos (Eager { got_sexp; no_sexp_is_error }) kind
+        A.create
+          ?initial_pos:pos
+          (Eager { got_sexp; reraise_notrace; no_sexp_is_error })
+          kind
       ;;
 
       let reset = A.reset

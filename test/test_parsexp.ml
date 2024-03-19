@@ -16,7 +16,7 @@ let%expect_test "unterminated sexp" =
         (col    4)
         (offset 4)))
       (message "unclosed parentheses at end of input")))
-  |}];
+    |}];
   test "  ";
   [%expect
     {|
@@ -26,7 +26,7 @@ let%expect_test "unterminated sexp" =
         (col    2)
         (offset 2)))
       (message "no s-expression found in input")))
-  |}]
+    |}]
 ;;
 
 let%expect_test "parsexp bug: it accepts invalid syntax" =
@@ -38,7 +38,8 @@ let%expect_test "parsexp bug: it accepts invalid syntax" =
         (line   1)
         (col    3)
         (offset 3)))
-      (message "unterminated sexp comment"))) |}];
+      (message "unterminated sexp comment")))
+    |}];
   test "#;(#;) a";
   [%expect
     {|
@@ -47,7 +48,8 @@ let%expect_test "parsexp bug: it accepts invalid syntax" =
         (line   1)
         (col    5)
         (offset 5)))
-      (message "unterminated sexp comment"))) |}];
+      (message "unterminated sexp comment")))
+    |}];
   test "#;";
   [%expect
     {|
@@ -56,7 +58,8 @@ let%expect_test "parsexp bug: it accepts invalid syntax" =
         (line   1)
         (col    2)
         (offset 2)))
-      (message "unterminated sexp comment"))) |}];
+      (message "unterminated sexp comment")))
+    |}];
   test "#;(#;q) (a)";
   [%expect {| (Ok (a)) |}];
   test "#;(#;(q)) (a)";
@@ -71,8 +74,7 @@ let%expect_test "parsexp bug: it accepts invalid syntax" =
 
 let%expect_test "regression test (used to raise s-expression followed by data)" =
   test "a #;0";
-  [%expect {|
-    (Ok a) |}]
+  [%expect {| (Ok a) |}]
 ;;
 
 let parse_eager_cst ~no_sexp_is_error str =
@@ -109,7 +111,8 @@ let%expect_test "regression test (we didn't run the callback on comments, result
             (line   1)
             (col    1)
             (offset 1)))))
-        (comment ";"))))) |}];
+        (comment ";")))))
+    |}];
   test "#||#";
   [%expect
     {|
@@ -125,7 +128,8 @@ let%expect_test "regression test (we didn't run the callback on comments, result
             (line   1)
             (col    4)
             (offset 4)))))
-        (comment "#||#"))))) |}];
+        (comment "#||#")))))
+    |}];
   test "#;#;a b";
   [%expect
     {|
@@ -168,7 +172,8 @@ let%expect_test "regression test (we didn't run the callback on comments, result
               (col    7)
               (offset 7)))))
           (atom b)
-          (unescaped (b)))))))) |}];
+          (unescaped (b))))))))
+    |}];
   test "a;\nb";
   [%expect
     {|
@@ -210,7 +215,8 @@ let%expect_test "regression test (we didn't run the callback on comments, result
             (col    1)
             (offset 4)))))
         (atom b)
-        (unescaped (b)))))) |}]
+        (unescaped (b))))))
+    |}]
 ;;
 
 let%expect_test "regression test (we counted comments as sexps for the purpose of \
@@ -230,7 +236,8 @@ let%expect_test "regression test (we counted comments as sexps for the purpose o
           (line   1)
           (col    1)
           (offset 1)))
-        (message "no s-expression found in input")))) |}];
+        (message "no s-expression found in input"))))
+    |}];
   test "#||#";
   [%expect
     {|
@@ -240,7 +247,8 @@ let%expect_test "regression test (we counted comments as sexps for the purpose o
           (line   1)
           (col    4)
           (offset 4)))
-        (message "no s-expression found in input")))) |}];
+        (message "no s-expression found in input"))))
+    |}];
   test "#;#;a b";
   [%expect
     {|
@@ -250,7 +258,8 @@ let%expect_test "regression test (we counted comments as sexps for the purpose o
           (line   1)
           (col    7)
           (offset 7)))
-        (message "no s-expression found in input")))) |}]
+        (message "no s-expression found in input"))))
+    |}]
 ;;
 
 module P = Eager
@@ -269,7 +278,7 @@ exception Got_sexp of Sexp.t
 let fetch_sexp (stream : char Queue.t) =
   let got_sexp _state sexp = Exn.raise_without_backtrace (Got_sexp sexp) in
   let count = Queue.length stream in
-  let state = P.State.create got_sexp in
+  let state = P.State.create ~reraise_notrace:true got_sexp in
   match hot_loop state stream P.Stack.empty with
   | () -> None
   | exception Got_sexp sexp ->
@@ -313,7 +322,8 @@ let%expect_test "eager parser raise" =
     got: (b)
     got: c
     got: d
-    got: (1 (2 3)) |}]
+    got: (1 (2 3))
+    |}]
 ;;
 
 let all_short_strings () =
@@ -444,7 +454,7 @@ let%expect_test "eager parser continue" =
     got: c
     got: d
     got: (1 (2 3))
-  |}]
+    |}]
 ;;
 
 let%expect_test "eager parser incorrect mutation" =
@@ -453,9 +463,7 @@ let%expect_test "eager parser incorrect mutation" =
   let got_sexp _state _sexp = P.State.reset !state in
   state := P.State.create got_sexp;
   show_raise ~hide_positions:true (fun () -> hot_loop !state stream P.Stack.empty);
-  [%expect {|
-    (raised "Assert_failure automaton_action.ml:LINE:COL")
-  |}]
+  [%expect {| (raised "Assert_failure automaton_action.ml:LINE:COL") |}]
 ;;
 
 let%expect_test "eager parser feed after raise without reset" =
@@ -465,7 +473,20 @@ let%expect_test "eager parser feed after raise without reset" =
   (try hot_loop state stream P.Stack.empty with
    | Stdlib.Exit -> ());
   show_raise (fun () -> hot_loop state stream P.Stack.empty);
-  [%expect {|
-    (raised (Failure "Parsexp.Parser_automaton: parser is dead"))
-  |}]
+  [%expect {| (raised (Failure "Parsexp.Parser_automaton: parser is dead")) |}]
+;;
+
+let%expect_test ("test for memory leak of most recently parsed sexp" [@tags "no-js"]) =
+  (* read a sexp option *)
+  let stream = chars_of_string input in
+  let open Core in
+  let option1 = fetch_sexp stream in
+  print_s [%sexp (option1 : Sexp.t option)];
+  [%expect {| ((Hello World)) |}];
+  let weak = Weak.create 1 in
+  Weak.set weak 0 option1;
+  (* sexp option no longer live after a major collection *)
+  Gc.full_major ();
+  print_s [%sexp (Weak.check weak 0 : bool)];
+  [%expect {| false |}]
 ;;

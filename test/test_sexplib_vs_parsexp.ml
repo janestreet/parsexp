@@ -26,7 +26,7 @@ let%expect_test _ =
   [%expect {|
     same
     "a\\q"
-  |}]
+    |}]
 ;;
 
 let%expect_test _ =
@@ -38,7 +38,7 @@ let%expect_test _ =
 
     Note: the various sexplib parsers disagree between themselves
     (sexplib_lexer "a b")
-  |}]
+    |}]
 ;;
 
 let test_cont_state input =
@@ -74,60 +74,60 @@ let%expect_test _ =
   [%expect {|
     same
     (Cont Parsing_toplevel_whitespace)
-  |}];
+    |}];
   test_cont_state "\r";
   [%expect {|
     same
     (Cont Parsing_nested_whitespace)
-  |}];
+    |}];
   test_cont_state "\"toto";
   [%expect {|
     same
     (Cont Parsing_atom)
-  |}];
+    |}];
   test_cont_state "#";
   [%expect {|
     same
     (Cont Parsing_atom)
-  |}];
+    |}];
   test_cont_state "#| toto";
   [%expect {|
     same
     (Cont Parsing_block_comment)
-  |}];
+    |}];
   test_cont_state "#| \"bla";
   [%expect {|
     same
     (Cont Parsing_block_comment)
-  |}];
+    |}];
   test_cont_state "#; toto";
   [%expect {|
     same
     (Cont Parsing_sexp_comment)
-  |}];
+    |}];
   test_cont_state "; toto";
   [%expect {|
     same
     (Cont Parsing_toplevel_whitespace)
-  |}];
+    |}];
   test_cont_state "(";
   [%expect {|
     same
     (Cont Parsing_list)
-  |}];
+    |}];
   test_cont_state "#; (";
   [%expect {|
     same
     (Cont Parsing_sexp_comment)
-  |}];
+    |}];
   test_cont_state "#; #|";
   [%expect {|
     same
     (Cont Parsing_sexp_comment)
-  |}];
+    |}];
   test_cont_state "#;\r";
   [%expect {|
     same
     (Cont Parsing_sexp_comment)
-  |}]
+    |}]
 ;;

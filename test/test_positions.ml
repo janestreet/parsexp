@@ -63,18 +63,19 @@ let%expect_test "build_positions_simple" =
       (line   1)
       (col    0)
       (offset 0)))
-  |}];
+    |}];
   f ". .";
-  [%expect {|
+  [%expect
+    {|
     (((line 1) (col 0) (offset 0))
      ((line 1) (col 2) (offset 2)))
-  |}];
+    |}];
   f ". xxx \n xxx .";
   [%expect
     {|
     (((line 1) (col 0) (offset 0))
      ((line 2) (col 5) (offset 12)))
-  |}]
+    |}]
 ;;
 
 let check_all_subsexps_map_to_their_position s sexps positions =
@@ -114,7 +115,7 @@ let%expect_test "build_positions_ignore_commented_expr" =
      ((line 1) (col 0)  (offset 0))
      ((line 1) (col 10) (offset 10))
      ((line 1) (col 10) (offset 10)))
-  |}]
+    |}]
 ;;
 
 let%expect_test "all" =
@@ -157,7 +158,7 @@ let%expect_test "find" =
                 }])
       done
     done);
-  [%expect]
+  [%expect {| |}]
 ;;
 
 let cases_for_find_sub_sexp = [ "( ( ( abc ) (+ 1 2) ) )" ]
@@ -246,5 +247,6 @@ let%expect_test "advance_sexp_exn" =
     (abc)
     (1 (2 (3)))
     123
-    (+ x y) |}]
+    (+ x y)
+    |}]
 ;;

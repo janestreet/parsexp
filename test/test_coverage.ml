@@ -78,7 +78,7 @@ module Char_class = struct
       class 12: '\\'
       class 13: 'x'
       class 14: '|'
-    |}]
+      |}]
   ;;
 end
 
@@ -630,5 +630,6 @@ let%expect_test "coverage" =
     the various sexplib parsers disagree between themselves on this case:
     input:         "\"\\ \""
     sexplib:       (Ok "\\ ")
-    sexplib_lexer: (Ok " ") |}]
+    sexplib_lexer: (Ok " ")
+    |}]
 ;;

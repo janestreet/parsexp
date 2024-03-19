@@ -29,7 +29,8 @@ a = 123
     ((x (a b c))
      (y 42)
      (z blah)
-     (a 123)) |}]
+     (a 123))
+    |}]
 ;;
 
 let%expect_test "empty lexing" =
@@ -42,10 +43,10 @@ let%expect_test "the lexer doesn't consume more than it should" =
   [%expect {|
     abc
     123
-  |}];
+    |}];
   sexps {| abc() |};
   [%expect {|
     abc
     ()
-  |}]
+    |}]
 ;;
