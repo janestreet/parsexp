@@ -1,3 +1,10 @@
+## Release v0.17.0
+
+- Added `Parsexp.Conv_many_and_locations`
+
+- In eager parser, add an option `reraise_notrace` to better support call sites
+    that use exceptions as control-flow.
+
 ## Release v0.16.0
 
 - Expose type equalities for `State.t` and `Stack.t` types in off-the-shelf parser modules.
