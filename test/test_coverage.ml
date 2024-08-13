@@ -48,13 +48,13 @@ module Char_class = struct
         List.filter_mapi classes ~f:(fun i cl' -> Option.some_if (cl = cl') i)
         |> List.group ~break:(fun a b -> a + 1 <> b)
         |> List.map ~f:(function
-             | [] -> assert false
-             | [ x ] -> Printf.sprintf "%C" (Char.of_int_exn x)
-             | x :: l ->
-               Printf.sprintf
-                 "%C..%C"
-                 (Char.of_int_exn x)
-                 (Option.value (List.last l) ~default:x |> Char.of_int_exn))
+          | [] -> assert false
+          | [ x ] -> Printf.sprintf "%C" (Char.of_int_exn x)
+          | x :: l ->
+            Printf.sprintf
+              "%C..%C"
+              (Char.of_int_exn x)
+              (Option.value (List.last l) ~default:x |> Char.of_int_exn))
       in
       let open Stdlib.Format in
       printf "@[<10>class %2d:%t@]@." cl (fun ppf ->
@@ -95,7 +95,7 @@ let transition_eoi_seen = Array.create false ~len:State.count
 
 let feed state char stack =
   transition_seen.((A.automaton_state state * Char_class.count) + Char_class.of_char char)
-    <- true;
+  <- true;
   A.feed state char stack
 ;;
 
@@ -543,10 +543,10 @@ let cases =
   @ quoted_string_cases
   @ trailing_whitespace_cases
   @ List.map quoted_string_cases ~f:(fun (s, result) ->
-      ( "#|  " ^ s ^ "  |#blah"
-      , match result with
-        | Sexp _ -> Sexp (Sexp.Atom "blah")
-        | Error -> Error ))
+    ( "#|  " ^ s ^ "  |#blah"
+    , match result with
+      | Sexp _ -> Sexp (Sexp.Atom "blah")
+      | Error -> Error ))
 ;;
 
 let zero_sexp_cases : (string * Sexp.t list result) list =
@@ -603,28 +603,28 @@ let%expect_test "coverage" =
   List.iter
     !cases_where_sexplib_disagree_with_itself
     ~f:(fun (input, sexplib, sexplib_lexer) ->
-    let suppress =
-      (* there are many examples where continuation-based parser fails and lexer
+      let suppress =
+        (* there are many examples where continuation-based parser fails and lexer
            succeeds so we filter these out: lexer interprets broken hex and decimal
            escape sequences as if they are not escape sequences at all
 
            Also lexer interprets "\\\r" differently: it keeps the slash, but we drop the
            slash
         *)
-      String.is_substring ~substring:{|"\x|} input
-      || String.is_substring ~substring:{|"\1|} input
-      || String.is_substring ~substring:({|"\|} ^ "\r") input
-    in
-    if not suppress
-    then
-      Stdlib.Format.printf
-        "the various sexplib parsers disagree between themselves on this \
-         case:@.input:         %S@.sexplib:       %a@.sexplib_lexer: %a@.@."
-        input
-        Sexp.pp_hum
-        [%sexp (sexplib : (Sexp.t, exn) Result.t)]
-        Sexp.pp_hum
-        [%sexp (sexplib_lexer : (Sexp.t, exn) Result.t)]);
+        String.is_substring ~substring:{|"\x|} input
+        || String.is_substring ~substring:{|"\1|} input
+        || String.is_substring ~substring:({|"\|} ^ "\r") input
+      in
+      if not suppress
+      then
+        Stdlib.Format.printf
+          "the various sexplib parsers disagree between themselves on this \
+           case:@.input:         %S@.sexplib:       %a@.sexplib_lexer: %a@.@."
+          input
+          Sexp.pp_hum
+          [%sexp (sexplib : (Sexp.t, exn) Result.t)]
+          Sexp.pp_hum
+          [%sexp (sexplib_lexer : (Sexp.t, exn) Result.t)]);
   [%expect
     {|
     the various sexplib parsers disagree between themselves on this case:

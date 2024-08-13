@@ -132,11 +132,11 @@ let make_eager (type stack state parsed_value) kind make_value
         lexbuf.lex_curr_pos <- p;
         lexbuf.lex_start_pos <- p;
         lexbuf.lex_curr_p
-          <- { lexbuf.lex_curr_p with
-               pos_lnum = pos.line
-             ; pos_cnum = pos.offset
-             ; pos_bol = pos.offset - pos.col
-             }
+        <- { lexbuf.lex_curr_p with
+             pos_lnum = pos.line
+           ; pos_cnum = pos.offset
+           ; pos_bol = pos.offset - pos.col
+           }
       ;;
 
       let rec feed_lexbuf t (lexbuf : Lexing.lexbuf) stack =

@@ -295,13 +295,15 @@ let iter_sexps (stream : char Queue.t) ~f =
   hot_loop state stream P.Stack.empty
 ;;
 
-let input = {|
+let input =
+  {|
 (Hello World)
 (a b c)
 "Hello world"
 a(b)c"d"
 (1 (2 3))
 |}
+;;
 
 let%expect_test "eager parser raise" =
   let stream = chars_of_string input in

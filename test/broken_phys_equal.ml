@@ -25,7 +25,8 @@ let%expect_test "Returns the incorrect sexp" =
   in
   print_endline ("| " ^ string);
   print_endline ("| " ^ underline);
-  [%expect {|
+  [%expect
+    {|
     | ((name"")(numbers())(opt()))
     |                         ^^
     |}];

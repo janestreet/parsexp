@@ -13,7 +13,7 @@ let sexp_of_t =
    | Of_sexp_error arg0__003_ ->
      let res0__004_ = Of_sexp_error.sexp_of_t arg0__003_ in
      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "Of_sexp_error"; res0__004_ ]
-    : t -> Sexplib0.Sexp.t)
+   : t -> Sexplib0.Sexp.t)
 ;;
 
 [@@@end]

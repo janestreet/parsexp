@@ -23,7 +23,8 @@ let test s =
 
 let%expect_test _ =
   test {| "a\q" |};
-  [%expect {|
+  [%expect
+    {|
     same
     "a\\q"
     |}]
@@ -55,7 +56,7 @@ let test_cont_state input =
     ignore
       (String.fold input ~init:Private.Automaton.Stack.empty ~f:(fun stack ch ->
          Private.Automaton.feed state ch stack)
-        : Private.Automaton.Stack.t);
+       : Private.Automaton.Stack.t);
     let old_state = Private.Automaton.old_parser_cont_state state in
     [%sexp Cont (old_state : Old_parser_cont_state.t)]
   in
@@ -71,62 +72,74 @@ let test_cont_state input =
 
 let%expect_test _ =
   test_cont_state " ";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_toplevel_whitespace)
     |}];
   test_cont_state "\r";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_nested_whitespace)
     |}];
   test_cont_state "\"toto";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_atom)
     |}];
   test_cont_state "#";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_atom)
     |}];
   test_cont_state "#| toto";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_block_comment)
     |}];
   test_cont_state "#| \"bla";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_block_comment)
     |}];
   test_cont_state "#; toto";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_sexp_comment)
     |}];
   test_cont_state "; toto";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_toplevel_whitespace)
     |}];
   test_cont_state "(";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_list)
     |}];
   test_cont_state "#; (";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_sexp_comment)
     |}];
   test_cont_state "#; #|";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_sexp_comment)
     |}];
   test_cont_state "#;\r";
-  [%expect {|
+  [%expect
+    {|
     same
     (Cont Parsing_sexp_comment)
     |}]

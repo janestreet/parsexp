@@ -17,7 +17,7 @@ let sexp_of_t =
    | Parsing_list -> Sexplib0.Sexp.Atom "Parsing_list"
    | Parsing_sexp_comment -> Sexplib0.Sexp.Atom "Parsing_sexp_comment"
    | Parsing_block_comment -> Sexplib0.Sexp.Atom "Parsing_block_comment"
-    : t -> Sexplib0.Sexp.t)
+   : t -> Sexplib0.Sexp.t)
 ;;
 
 [@@@end]

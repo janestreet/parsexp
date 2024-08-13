@@ -2,9 +2,9 @@ open! Import
 include Conv_intf
 
 module Make
-  (Mode : Mode)
-  (Sexp_parser : Parser.S with type parsed_value = Mode.parsed_sexp)
-  (Positions_parser : Parser.S with type parsed_value = Positions.t) =
+    (Mode : Mode)
+    (Sexp_parser : Parser.S with type parsed_value = Mode.parsed_sexp)
+    (Positions_parser : Parser.S with type parsed_value = Positions.t) =
 struct
   let reraise positions parsed_value ~sub user_exn =
     let location = Mode.find positions parsed_value ~sub in

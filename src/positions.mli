@@ -32,7 +32,7 @@ type pos =
   { line : int (** Line number. The first line has number [1].               *)
   ; col : int (** Column number. The first column has number [0].           *)
   ; offset : int
-      (** Number of bytes from the beginning of the input. The first
+  (** Number of bytes from the beginning of the input. The first
       byte has offset [0]. *)
   }
 [@@deriving_inline sexp_of]
@@ -79,26 +79,26 @@ val compare_range : range -> range -> int
 val make_range_incl : start_pos:pos -> last_pos:pos -> range
 
 module Builder : sig
-  type positions
-  type t
+    type positions
+    type t
 
-  val create : ?initial_pos:pos -> unit -> t
+    val create : ?initial_pos:pos -> unit -> t
 
-  (** [add], [add_twice] and [add_newline] must be called with strictly increasing
+    (** [add], [add_twice] and [add_newline] must be called with strictly increasing
       [offset] values. *)
 
-  (** int is absolute offset of the position *)
-  val add : t -> offset:int -> unit
+    (** int is absolute offset of the position *)
+    val add : t -> offset:int -> unit
 
-  val add_twice : t -> offset:int -> unit
+    val add_twice : t -> offset:int -> unit
 
-  (** int is absolute offset of the newline character *)
-  val add_newline : t -> offset:int -> unit
+    (** int is absolute offset of the newline character *)
+    val add_newline : t -> offset:int -> unit
 
-  val contents : t -> positions
-  val reset : t -> pos -> unit
-end
-with type positions := t
+    val contents : t -> positions
+    val reset : t -> pos -> unit
+  end
+  with type positions := t
 
 (** Build the list of all positions in [t]. *)
 val to_list : t -> pos list
@@ -134,21 +134,21 @@ val memory_footprint_in_bytes : t -> int
 
 (** API for iterating over positions in an efficient way *)
 module Iterator : sig
-  type positions = t
-  type t
+    type positions = t
+    type t
 
-  val create : positions -> t
+    val create : positions -> t
 
-  (** Exception raised when the iterator has reached the end of the sequence. *)
-  exception No_more
+    (** Exception raised when the iterator has reached the end of the sequence. *)
+    exception No_more
 
-  (** [advance t ~skip] skips the next [skip] positions in the sequence, advance to the
+    (** [advance t ~skip] skips the next [skip] positions in the sequence, advance to the
       next position and return it.
       Raises [No_more] when reaching the end of the position set. *)
-  val advance_exn : t -> skip:int -> pos
+    val advance_exn : t -> skip:int -> pos
 
-  (** Advance over a whole s-expression worth of positions. Returns the position range
+    (** Advance over a whole s-expression worth of positions. Returns the position range
       corresponding to that s-expression. *)
-  val advance_sexp_exn : t -> Sexp.t -> range
-end
-with type positions := t
+    val advance_sexp_exn : t -> Sexp.t -> range
+  end
+  with type positions := t

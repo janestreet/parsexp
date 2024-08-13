@@ -20,7 +20,9 @@ let%expect_test "parsing errors" =
   (* For the following tests, you can check that the reported character positions match
      the positions reported by emacs when you move the cursor over the faulty
      s-expressions. *)
-  test [%of_sexp: int list] {|
+  test
+    [%of_sexp: int list]
+    {|
 (1 2 3|};
   [%expect
     {|
@@ -28,7 +30,9 @@ let%expect_test "parsing errors" =
     Error: s-expression parsing error;
     unclosed parentheses at end of input
     |}];
-  test [%of_sexp: int list] {|
+  test
+    [%of_sexp: int list]
+    {|
 (1 2 "abc)|};
   [%expect
     {|
@@ -36,7 +40,9 @@ let%expect_test "parsing errors" =
     Error: s-expression parsing error;
     unterminated quoted string
     |}];
-  test_many [%of_sexp: int list] {|
+  test_many
+    [%of_sexp: int list]
+    {|
 (1 2 3)
 "a|};
   [%expect
@@ -51,7 +57,9 @@ let%expect_test "conversion errors" =
   (* For the following tests, you can check that the reported character positions match
      the positions reported by emacs when you move the cursor over the faulty
      s-expressions. *)
-  test [%of_sexp: int list] {|
+  test
+    [%of_sexp: int list]
+    {|
 (1 2 3 abc 4 5 6)
 |};
   [%expect
@@ -60,7 +68,9 @@ let%expect_test "conversion errors" =
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: (Failure int_of_string)")
     |}];
-  test [%of_sexp: int list] {|
+  test
+    [%of_sexp: int list]
+    {|
 (1 2 (1 2 3))
 |};
   [%expect
@@ -69,7 +79,9 @@ let%expect_test "conversion errors" =
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: atom needed")
     |}];
-  test [%of_sexp: int list] {|
+  test
+    [%of_sexp: int list]
+    {|
 (1 2 (1
 2
 3))
@@ -80,7 +92,9 @@ let%expect_test "conversion errors" =
     Error: s-expression conversion error;
     exception (Failure "int_of_sexp: atom needed")
     |}];
-  test_many [%of_sexp: int list] {|
+  test_many
+    [%of_sexp: int list]
+    {|
 (1 2 3)
 (a)
 |};
@@ -93,19 +107,22 @@ let%expect_test "conversion errors" =
 ;;
 
 let%expect_test "Conv_many_and_locations" =
-  let input = {|() (abc) (1 (2 (3)))
+  let input =
+    {|() (abc) (1 (2 (3)))
   123 (+ x y)
-|} in
+|}
+  in
   let _ =
     Conv_many_and_locations.parse_string_exn input (fun (sexp, { start_pos; end_pos }) ->
       let pos = start_pos.offset in
       let len = end_pos.offset - start_pos.offset in
       let sub = String.sub input ~pos ~len in
       let sexp_from_loc = Parsexp.Single.parse_string_exn sub in
-      Expect_test_helpers_core.require_equal [%here] (module Sexp) sexp sexp_from_loc;
+      Expect_test_helpers_core.require_equal (module Sexp) sexp sexp_from_loc;
       print_s [%sexp (sexp : Sexp.t)])
   in
-  [%expect {|
+  [%expect
+    {|
     ()
     (abc)
     (1 (2 (3)))

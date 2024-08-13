@@ -13,20 +13,20 @@ let sexp_of_t =
      let bnds__001_ =
        let arg__007_ = sexp_of_option Positions.sexp_of_range location__006_ in
        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "location"; arg__007_ ] :: bnds__001_
-         : _ Stdlib.List.t)
+        : _ Stdlib.List.t)
      in
      let bnds__001_ =
        let arg__005_ = Sexp.sexp_of_t sub_sexp__004_ in
        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "sub_sexp"; arg__005_ ] :: bnds__001_
-         : _ Stdlib.List.t)
+        : _ Stdlib.List.t)
      in
      let bnds__001_ =
        let arg__003_ = sexp_of_exn user_exn__002_ in
        (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "user_exn"; arg__003_ ] :: bnds__001_
-         : _ Stdlib.List.t)
+        : _ Stdlib.List.t)
      in
      Sexplib0.Sexp.List bnds__001_
-    : t -> Sexplib0.Sexp.t)
+   : t -> Sexplib0.Sexp.t)
 ;;
 
 [@@@end]

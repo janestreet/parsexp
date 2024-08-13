@@ -18,14 +18,16 @@ let sexps s =
 ;;
 
 let%expect_test "simple test" =
-  assoc {|
+  assoc
+    {|
 # Hello
 x = (a b c)
 y = 42
 z = "blah"
 a = 123
 |};
-  [%expect {|
+  [%expect
+    {|
     ((x (a b c))
      (y 42)
      (z blah)
@@ -40,12 +42,14 @@ let%expect_test "empty lexing" =
 
 let%expect_test "the lexer doesn't consume more than it should" =
   sexps {| abc"123" |};
-  [%expect {|
+  [%expect
+    {|
     abc
     123
     |}];
   sexps {| abc() |};
-  [%expect {|
+  [%expect
+    {|
     abc
     ()
     |}]

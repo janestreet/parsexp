@@ -16,7 +16,7 @@ module type Automaton_stack = sig
           ; rev_comments : Cst.comment list
           ; stack : t
           }
-          (** [In_sexp_comment] only indicates if the next s-expression is to be commented
+      (** [In_sexp_comment] only indicates if the next s-expression is to be commented
           out, but if we are nested below parens below an sexp comment, the stack would
           look like [Open (.., In_sexp_comment ..)]. *)
 
