@@ -1,6 +1,6 @@
 open! Import
 
-module type S = sig
+module type S = sig @@ portable
   type 'a res
   type chunk_to_conv
   type parsed_sexp
@@ -26,17 +26,17 @@ module type S = sig
       then you can create a [load_conv] function as follow:
 
       {[
-        let load_conv : string -> (Sexp.t -> 'a) -> ('a list, Conv_error.t) result
-          = fun filename f -> conv_combine (load filename) f
-      ]}
-  *)
+        let load_conv : string -> (Sexp.t -> 'a) -> ('a list, Conv_error.t) result =
+          fun filename f -> conv_combine (load filename) f
+        ;;
+      ]} *)
   val conv_combine
     :  (parsed_sexp * Positions.t, Parse_error.t) result
     -> (chunk_to_conv -> 'a)
     -> ('a res, Conv_error.t) result
 end
 
-module type Mode = sig
+module type Mode = sig @@ portable
   type parsed_sexp
   type 'a res
   type chunk_to_conv

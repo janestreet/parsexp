@@ -130,7 +130,7 @@ let make_range_incl ~start_pos ~last_pos =
   { start_pos; end_pos = shift_pos last_pos ~cols:1 }
 ;;
 
-module Chunk : sig
+module Chunk : sig @@ portable
   (** Represents an array of [length/2] signed 16-bit values *)
   type t
 
@@ -139,9 +139,8 @@ module Chunk : sig
 
   val alloc : unit -> t
 
-  (** [get16 ~pos] and [set16 ~pos] manipulate the [pos/2]th stored value.
-      [pos] must be even.
-      [set16 x] only uses the 16 least significant bits of [x]. *)
+  (** [get16 ~pos] and [set16 ~pos] manipulate the [pos/2]th stored value. [pos] must be
+      even. [set16 x] only uses the 16 least significant bits of [x]. *)
   val get16 : t -> pos:int -> int
 
   val set16 : t -> pos:int -> int -> unit
@@ -153,8 +152,8 @@ end = struct
   let length = 62
   let alloc () = Bytes.create length
 
-  external get16 : bytes -> pos:int -> int = "%caml_bytes_get16"
-  external set16 : bytes -> pos:int -> int -> unit = "%caml_bytes_set16"
+  external get16 : bytes -> pos:int -> int @@ portable = "%caml_bytes_get16"
+  external set16 : bytes -> pos:int -> int -> unit @@ portable = "%caml_bytes_set16"
 
   (* If we want to make a [Positions.t] serializable:
 
@@ -386,7 +385,7 @@ let rec sub_sexp_count (sexp : Sexp.t) =
 
 let sexp_positions_count sexp = sub_sexp_count sexp * 2
 
-module Iterator : sig
+module Iterator : sig @@ portable
   type t
 
   val create : positions -> t

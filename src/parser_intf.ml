@@ -13,8 +13,7 @@ module type State = sig
       {[
         reset t ?pos;
         assert (t = create ?pos ())
-      ]}
-  *)
+      ]} *)
   val reset : ?pos:Positions.pos -> t -> unit
 
   (** Number of characters fed to the parser *)
@@ -33,12 +32,12 @@ end
 
 module type Stack = sig
   (** Parser stack. The stack is not in [state] for optimization purposes. *)
-  type t
+  type t : value mod contended portable
 
   val empty : t
 end
 
-module type S = sig
+module type S = sig @@ portable
   (** Values produced by the parser *)
   type parsed_value
 
@@ -65,7 +64,7 @@ module type S = sig
   val parse_string_exn : string -> parsed_value
 end
 
-module type S_eager = sig
+module type S_eager = sig @@ portable
   (** Same as [Parser] but gives back a s-expression as soon as they are found in the
       input.
 
@@ -85,20 +84,18 @@ module type S_eager = sig
               Stream.junk stream;
               hot_loop state stream stack
           in
-          let got_sexp state sexp =
-            raise_notrace (Got_sexp sexp)
-          in
+          let got_sexp state sexp = raise_notrace (Got_sexp sexp) in
           let count = Stream.count stream in
           let state = P.State.create ~f:got_sexp ~no_sexp_is_error:true in
           match hot_loop state stream P.Stack.empty with
           | () -> assert false
-          | exception (Got_sexp sexp) ->
+          | exception Got_sexp sexp ->
             (* This test is true if the s-expression includes the last character passed to
                the parser *)
             if P.State.offset state > Stream.count stream - count then Stream.junk stream;
             sexp
-      ]}
-  *)
+        ;;
+      ]} *)
 
   (** Values produces by the parser *)
   type parsed_value
@@ -122,14 +119,14 @@ module type S_eager = sig
 
         [no_sexp_is_error] controls the behavior of the parse when the end of input is
         reached and no s-expression has been found. When [no_sexp_is_error] is [false]
-        (the default) [feed_eoi] just returns [()], when it is [false] [feed_eoi]
-        raises. In any case, if the end of input is reached while parsing an incomplete
+        (the default) [feed_eoi] just returns [()], when it is [true] [feed_eoi] raises.
+        In any case, if the end of input is reached while parsing an incomplete
         s-expression such as [(abc], error is raised.
 
         [reraise_notrace] controls whether or not the exceptions raised by [f] are
-        reraised without a backtrace. ([false]: with, [true]: without)
-        Generally you should pass [true] if you're using [raise_nontrace] in [f],
-        especially if using exceptions for control flow.
+        reraised without a backtrace. ([false]: with, [true]: without) Generally you
+        should pass [true] if you're using [raise_notrace] in [f], especially if using
+        exceptions for control flow.
 
         [f] must not save the read-only parser state it receives to access it after
         returning. It is unspecified what values it will read if it does so. *)
@@ -170,15 +167,15 @@ module type S_eager = sig
   end
 end
 
-module type Parser = sig
+module type Parser = sig @@ portable
   module type S = S
   module type S_eager = S_eager
   module type Stack = Stack
 
   val make
     :  ('state, 'stack) Automaton_state.Kind.t
-    -> ('state, 'stack) Automaton_state.Mode.t
-    -> (('state, 'stack) Automaton_state.t -> 'stack -> 'a)
+    -> (unit -> ('state, 'stack) Automaton_state.Mode.t) @ portable
+    -> (('state, 'stack) Automaton_state.t -> 'stack -> 'a) @ portable
     -> (module S
           with type parsed_value = 'a
            and type State.t = ('state, 'stack) Automaton_state.t
@@ -186,7 +183,7 @@ module type Parser = sig
 
   val make_eager
     :  ('state, 'stack) Automaton_state.Kind.t
-    -> (('state, 'stack) Automaton_state.t -> 'stack -> 'a)
+    -> (('state, 'stack) Automaton_state.t -> 'stack -> 'a) @ portable
     -> (module S_eager
           with type parsed_value = 'a
            and type State.t = ('state, 'stack) Automaton_state.t

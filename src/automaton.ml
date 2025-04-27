@@ -4,12 +4,19 @@ include Automaton_state
 
 let feed (type u s) (state : (u, s) Automaton_state.t) char (stack : s) : s =
   let idx = (automaton_state state lsl 8) lor Char.code char in
-  Automaton_tables.transitions.(idx).f state char stack
+  (Basement.Stdlib_iarray_labels.get Automaton_tables.transitions idx).f state char stack
 [@@inline always]
 ;;
 
 let feed_eoi (type u s) (state : (u, s) Automaton_state.t) (stack : s) : s =
-  let stack = Automaton_tables.transitions_eoi.(automaton_state state).f state stack in
+  let stack =
+    (Basement.Stdlib_iarray_labels.get
+       Automaton_tables.transitions_eoi
+       (automaton_state state))
+      .f
+      state
+      stack
+  in
   set_error_state state;
   stack
 ;;
@@ -19,7 +26,9 @@ let old_parser_cont_state state : Old_parser_cont_state.t =
   | Sexp_comment -> Parsing_sexp_comment
   | Sexp ->
     (match
-       ( Automaton_tables.old_parser_approx_cont_states.(automaton_state state)
+       ( Basement.Stdlib_iarray_labels.get
+           Automaton_tables.old_parser_approx_cont_states
+           (automaton_state state)
        , has_unclosed_paren state )
      with
      | Parsing_toplevel_whitespace, true -> Parsing_list

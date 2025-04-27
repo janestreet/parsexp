@@ -1,3 +1,5 @@
+@@ portable
+
 open! Import
 
 type t [@@deriving_inline sexp_of]

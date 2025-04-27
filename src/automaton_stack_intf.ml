@@ -1,11 +1,11 @@
 open! Import
 
 (** Automaton stack represents a prefix of a sexp (or of a sexp sequence) while it's being
-    parsed.  We have three different types of the stack depending on how much detail about
+    parsed. We have three different types of the stack depending on how much detail about
     the sexp structure is being recorded (just the sexp, sexp with comments and positions
     (CST), or just positions. *)
 
-module type Automaton_stack = sig
+module type Automaton_stack = sig @@ portable
   module For_cst : sig
     type t =
       | Empty (** at top-level *)

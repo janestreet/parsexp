@@ -20,7 +20,7 @@ module Reason = struct
     | Unclosed_paren
 end
 
-module type Parse_error = sig
+module type Parse_error = sig @@ portable
   type t [@@deriving_inline sexp_of]
 
   include sig
@@ -37,10 +37,8 @@ module type Parse_error = sig
 
   (** Report an error in a style similar to OCaml, for instance:
 
-      File "blah", line 42, character 10:
-      Error: s-expression parsing error;
-      unterminated quoted string.
-  *)
+      File "blah", line 42, character 10: Error: s-expression parsing error; unterminated
+      quoted string. *)
   val report : Format.formatter -> filename:string -> t -> unit
 
   exception Parse_error of t
