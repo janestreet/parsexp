@@ -91,14 +91,19 @@ let print_table suffix tbl ids =
   Array.map tbl ~f:(fun tr -> Printf.sprintf "tr%s_%02d" suffix (Hashtbl.find_exn ids tr))
   |> Array.to_list
   |> String.concat ~sep:";"
-  |> Stdio.printf "let transitions%s = [| %s |]" suffix
+  |> Stdio.printf
+       "let transitions%s : (_ : value mod portable) Basement.Stdlib_iarray_labels.t = \
+        Basement.Stdlib_iarray_labels.unsafe_of_array [| %s |]"
+       suffix
 ;;
 
 let print_old_parser_approx_cont_states () =
   List.map Automaton.State.all ~f:Automaton.State.old_parser_approx_cont_state
   |> String.concat ~sep:";"
   |> Stdio.printf
-       "let old_parser_approx_cont_states : Old_parser_cont_state.t array = [| %s |]"
+       "let old_parser_approx_cont_states : Old_parser_cont_state.t \
+        Basement.Stdlib_iarray_labels.t = Basement.Stdlib_iarray_labels.unsafe_of_array \
+        ([| %s |] : Old_parser_cont_state.t array)"
 ;;
 
 let print_code () =

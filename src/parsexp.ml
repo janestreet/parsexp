@@ -15,11 +15,11 @@ module A = Automaton
 exception Parse_error = Parse_error.Parse_error
 exception Of_sexp_error = Of_sexp_error.Of_sexp_error
 
-let const c _ = c
+module Single =
+  (val Parser.make Sexp (fun () -> Single) (fun _ -> Automaton_stack.get_single))
 
-module Single = (val Parser.make Sexp Single (const Automaton_stack.get_single))
-module Many = (val Parser.make Sexp Many (const Automaton_stack.get_many))
-module Eager = (val Parser.make_eager Sexp (const Automaton_stack.get_single))
+module Many = (val Parser.make Sexp (fun () -> Many) (fun _ -> Automaton_stack.get_many))
+module Eager = (val Parser.make_eager Sexp (fun _ -> Automaton_stack.get_single))
 
 let and_get_positions get_sexp state stack = get_sexp stack, A.positions state
 
@@ -27,8 +27,10 @@ let and_positions mode get_sexp =
   Parser.make Sexp_with_positions mode (and_get_positions get_sexp)
 ;;
 
-module Single_and_positions = (val and_positions Single Automaton_stack.get_single)
-module Many_and_positions = (val and_positions Many Automaton_stack.get_many)
+module Single_and_positions =
+  (val and_positions (fun () -> Single) Automaton_stack.get_single)
+
+module Many_and_positions = (val and_positions (fun () -> Many) Automaton_stack.get_many)
 
 module Eager_and_positions =
   (val Parser.make_eager
@@ -38,13 +40,13 @@ module Eager_and_positions =
 let just_get_positions state () = A.positions state
 let just_positions mode = Parser.make Positions mode just_get_positions
 
-module Single_just_positions = (val just_positions Single)
-module Many_just_positions = (val just_positions Many)
+module Single_just_positions = (val just_positions (fun () -> Single))
+module Many_just_positions = (val just_positions (fun () -> Many))
 module Eager_just_positions = (val Parser.make_eager Positions just_get_positions)
 
-let cst mode f = Parser.make Cst mode (const f)
+let cst mode f = Parser.make Cst mode (fun _ -> f)
 
-module Many_cst = (val cst Many Automaton_stack.For_cst.get_many)
+module Many_cst = (val cst (fun () -> Many) Automaton_stack.For_cst.get_many)
 
 module Eager_cst =
   (val Parser.make_eager Cst (fun _ stack ->

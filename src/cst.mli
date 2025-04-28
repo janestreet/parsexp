@@ -3,8 +3,7 @@
 (** This module exposes a type that describe the full contents of a source file containing
     s-expressions.
 
-    One can use this type to do low-level rewriting of s-expression files.
-*)
+    One can use this type to do low-level rewriting of s-expression files. *)
 
 open! Import
 

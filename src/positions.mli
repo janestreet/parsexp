@@ -12,8 +12,7 @@ open! Import
     well as the positions of the first and last character of each atom.
 
     Note that a [t] can hold the same given positions no more than twice. The parser
-    stores the same position twice for non-quoted single character atoms.
-*)
+    stores the same position twice for non-quoted single character atoms. *)
 type t [@@deriving_inline sexp_of]
 
 include sig
@@ -29,11 +28,10 @@ val compare : t -> t -> int
 
 (** Represent a position in the input *)
 type pos =
-  { line : int (** Line number. The first line has number [1].               *)
-  ; col : int (** Column number. The first column has number [0].           *)
+  { line : int (** Line number. The first line has number [1]. *)
+  ; col : int (** Column number. The first column has number [0]. *)
   ; offset : int
-  (** Number of bytes from the beginning of the input. The first
-      byte has offset [0]. *)
+  (** Number of bytes from the beginning of the input. The first byte has offset [0]. *)
   }
 [@@deriving_inline sexp_of]
 
@@ -54,8 +52,7 @@ val shift_pos : pos -> cols:int -> pos
     OCaml, i.e. [start_pos] points to the first character and [end_pos] points to the
     position just after the last character.
 
-    This allow for instance to represent empty ranges with [start_pos = end_pos].
-*)
+    This allow for instance to represent empty ranges with [start_pos = end_pos]. *)
 type range =
   { start_pos : pos
   ; end_pos : pos
@@ -74,8 +71,8 @@ end
 val compare_range : range -> range -> int
 
 (** Make a range from two positions where both positions are inclusive, i.e. [start_pos]
-    points to the first character and [end_pos] points to the last one.
-    The character at [last_pos] is assumed to not be a newline character. *)
+    points to the first character and [end_pos] points to the last one. The character at
+    [last_pos] is assumed to not be a newline character. *)
 val make_range_incl : start_pos:pos -> last_pos:pos -> range
 
 module Builder : sig
@@ -85,7 +82,7 @@ module Builder : sig
     val create : ?initial_pos:pos -> unit -> t
 
     (** [add], [add_twice] and [add_newline] must be called with strictly increasing
-      [offset] values. *)
+        [offset] values. *)
 
     (** int is absolute offset of the position *)
     val add : t -> offset:int -> unit
@@ -116,15 +113,13 @@ val to_array : t -> pos array
       make_range_incl ~start_pos:a.(i) ~last_pos:a.(j)
     ]}
 
-    but more efficient.
-*)
+    but more efficient. *)
 val find : t -> int -> int -> range
 
 (** [find_sub_sexp_phys t sexp ~sub] looks for [sub] in [sexp] and return its location,
     assuming [t] is the sequence of positions associated with [sexp].
 
-    Comparison is done using physical equality.
-*)
+    Comparison is done using physical equality. *)
 val find_sub_sexp_phys : t -> Sexp.t -> sub:Sexp.t -> range option
 
 val find_sub_sexp_in_list_phys : t -> Sexp.t list -> sub:Sexp.t -> range option
@@ -143,12 +138,12 @@ module Iterator : sig
     exception No_more
 
     (** [advance t ~skip] skips the next [skip] positions in the sequence, advance to the
-      next position and return it.
-      Raises [No_more] when reaching the end of the position set. *)
+        next position and return it. Raises [No_more] when reaching the end of the
+        position set. *)
     val advance_exn : t -> skip:int -> pos
 
     (** Advance over a whole s-expression worth of positions. Returns the position range
-      corresponding to that s-expression. *)
+        corresponding to that s-expression. *)
     val advance_sexp_exn : t -> Sexp.t -> range
   end
   with type positions := t

@@ -26,10 +26,10 @@ module type S = sig
       then you can create a [load_conv] function as follow:
 
       {[
-        let load_conv : string -> (Sexp.t -> 'a) -> ('a list, Conv_error.t) result
-          = fun filename f -> conv_combine (load filename) f
-      ]}
-  *)
+        let load_conv : string -> (Sexp.t -> 'a) -> ('a list, Conv_error.t) result =
+          fun filename f -> conv_combine (load filename) f
+        ;;
+      ]} *)
   val conv_combine
     :  (parsed_sexp * Positions.t, Parse_error.t) result
     -> (chunk_to_conv -> 'a)

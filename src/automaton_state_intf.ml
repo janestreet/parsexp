@@ -26,10 +26,10 @@ module rec State : sig
   type ('u, 's) t =
     { mutable automaton_state : int
     ; kind : ('u, 's) Kind.t
-    ; mutable depth : int (** Number of opened #| when parsing a block comment *)
+    ; mutable depth : int (** {v  Number of opened #| when parsing a block comment v} *)
     ; mutable block_comment_depth : int
-    (** Stack of ignoring depths; the current depth is pushed
-        each time a #; comment is entered. *)
+    (** Stack of ignoring depths; the current depth is pushed each time a #; comment is
+        entered. *)
     ; mutable ignoring_stack : int list
     (** When parsing an escape sequence of the form "\\NNN" or "\\XX", this accumulates
         the computed number *)

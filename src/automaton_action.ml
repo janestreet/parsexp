@@ -24,14 +24,15 @@ let context = Automaton_state.context
 type ('u, 's) t = ('u, 's) Automaton_state.t -> char -> 's -> 's
 
 module Poly = struct
-  type nonrec t = { f : 'u 's. ('u, 's) t } [@@unboxed]
+  type nonrec t = { f : 'u 's. ('u, 's) t } [@@unboxed] [@@unsafe_allow_any_mode_crossing]
 end
 
 module Epsilon = struct
   type ('u, 's) t = ('u, 's) Automaton_state.t -> 's -> 's
 
   module Poly = struct
-    type nonrec t = { f : 'u 's. ('u, 's) t } [@@unboxed]
+    type nonrec t = { f : 'u 's. ('u, 's) t }
+    [@@unboxed] [@@unsafe_allow_any_mode_crossing]
   end
 end
 

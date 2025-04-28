@@ -139,9 +139,8 @@ module Chunk : sig
 
   val alloc : unit -> t
 
-  (** [get16 ~pos] and [set16 ~pos] manipulate the [pos/2]th stored value.
-      [pos] must be even.
-      [set16 x] only uses the 16 least significant bits of [x]. *)
+  (** [get16 ~pos] and [set16 ~pos] manipulate the [pos/2]th stored value. [pos] must be
+      even. [set16 x] only uses the 16 least significant bits of [x]. *)
   val get16 : t -> pos:int -> int
 
   val set16 : t -> pos:int -> int -> unit
