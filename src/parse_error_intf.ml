@@ -21,16 +21,7 @@ module Reason = struct
 end
 
 module type Parse_error = sig
-  type t [@@deriving_inline sexp_of]
-
-  include sig
-    [@@@ocaml.warning "-32"]
-
-    val sexp_of_t : t -> Sexplib0.Sexp.t
-  end
-  [@@ocaml.doc "@inline"]
-
-  [@@@end]
+  type t [@@deriving sexp_of]
 
   val position : t -> Positions.pos
   val message : t -> string

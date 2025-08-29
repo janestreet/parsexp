@@ -11,7 +11,6 @@ module For_cst = struct
     { token_buffer : Buffer.t (** Starting positions of the current token **)
     ; mutable token_start_pos : Positions.pos
     }
-  [@@deriving sexp_of]
 end
 
 module Kind = struct

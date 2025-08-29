@@ -1,15 +1,6 @@
 open! Import
 
-type t [@@deriving_inline sexp_of]
-
-include sig
-  [@@@ocaml.warning "-32"]
-
-  val sexp_of_t : t -> Sexplib0.Sexp.t
-end
-[@@ocaml.doc "@inline"]
-
-[@@@end]
+type t [@@deriving sexp_of]
 
 (** Exception raised by the user function *)
 val user_exn : t -> exn

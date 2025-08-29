@@ -13,16 +13,7 @@ open! Import
 
     Note that a [t] can hold the same given positions no more than twice. The parser
     stores the same position twice for non-quoted single character atoms. *)
-type t [@@deriving_inline sexp_of]
-
-include sig
-  [@@@ocaml.warning "-32"]
-
-  val sexp_of_t : t -> Sexplib0.Sexp.t
-end
-[@@ocaml.doc "@inline"]
-
-[@@@end]
+type t [@@deriving sexp_of]
 
 val compare : t -> t -> int
 
@@ -33,16 +24,7 @@ type pos =
   ; offset : int
   (** Number of bytes from the beginning of the input. The first byte has offset [0]. *)
   }
-[@@deriving_inline sexp_of]
-
-include sig
-  [@@@ocaml.warning "-32"]
-
-  val sexp_of_pos : pos -> Sexplib0.Sexp.t
-end
-[@@ocaml.doc "@inline"]
-
-[@@@end]
+[@@deriving sexp_of]
 
 val compare_pos : pos -> pos -> int
 val beginning_of_file : pos
@@ -57,16 +39,7 @@ type range =
   { start_pos : pos
   ; end_pos : pos
   }
-[@@deriving_inline sexp_of]
-
-include sig
-  [@@@ocaml.warning "-32"]
-
-  val sexp_of_range : range -> Sexplib0.Sexp.t
-end
-[@@ocaml.doc "@inline"]
-
-[@@@end]
+[@@deriving sexp_of]
 
 val compare_range : range -> range -> int
 

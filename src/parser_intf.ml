@@ -173,7 +173,8 @@ module type Parser = sig
   module type Stack = Stack
 
   val make
-    :  ('state, 'stack) Automaton_state.Kind.t
+    : 'a 'state 'stack.
+    ('state, 'stack) Automaton_state.Kind.t
     -> (unit -> ('state, 'stack) Automaton_state.Mode.t)
     -> (('state, 'stack) Automaton_state.t -> 'stack -> 'a)
     -> (module S
@@ -182,7 +183,8 @@ module type Parser = sig
            and type Stack.t = 'stack)
 
   val make_eager
-    :  ('state, 'stack) Automaton_state.Kind.t
+    : 'a 'state 'stack.
+    ('state, 'stack) Automaton_state.Kind.t
     -> (('state, 'stack) Automaton_state.t -> 'stack -> 'a)
     -> (module S_eager
           with type parsed_value = 'a

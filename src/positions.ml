@@ -69,31 +69,7 @@ type pos =
   ; col : int
   ; offset : int
   }
-[@@deriving_inline sexp_of]
-
-let sexp_of_pos =
-  (fun { line = line__002_; col = col__004_; offset = offset__006_ } ->
-     let bnds__001_ = ([] : _ Stdlib.List.t) in
-     let bnds__001_ =
-       let arg__007_ = sexp_of_int offset__006_ in
-       (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "offset"; arg__007_ ] :: bnds__001_
-        : _ Stdlib.List.t)
-     in
-     let bnds__001_ =
-       let arg__005_ = sexp_of_int col__004_ in
-       (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "col"; arg__005_ ] :: bnds__001_
-        : _ Stdlib.List.t)
-     in
-     let bnds__001_ =
-       let arg__003_ = sexp_of_int line__002_ in
-       (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "line"; arg__003_ ] :: bnds__001_
-        : _ Stdlib.List.t)
-     in
-     Sexplib0.Sexp.List bnds__001_
-   : pos -> Sexplib0.Sexp.t)
-;;
-
-[@@@end]
+[@@deriving sexp_of]
 
 let compare_pos = Stdlib.compare
 let beginning_of_file = { line = 1; col = 0; offset = 0 }
@@ -103,26 +79,7 @@ type range =
   { start_pos : pos
   ; end_pos : pos
   }
-[@@deriving_inline sexp_of]
-
-let sexp_of_range =
-  (fun { start_pos = start_pos__009_; end_pos = end_pos__011_ } ->
-     let bnds__008_ = ([] : _ Stdlib.List.t) in
-     let bnds__008_ =
-       let arg__012_ = sexp_of_pos end_pos__011_ in
-       (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "end_pos"; arg__012_ ] :: bnds__008_
-        : _ Stdlib.List.t)
-     in
-     let bnds__008_ =
-       let arg__010_ = sexp_of_pos start_pos__009_ in
-       (Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "start_pos"; arg__010_ ] :: bnds__008_
-        : _ Stdlib.List.t)
-     in
-     Sexplib0.Sexp.List bnds__008_
-   : range -> Sexplib0.Sexp.t)
-;;
-
-[@@@end]
+[@@deriving sexp_of]
 
 let compare_range = Stdlib.compare
 
@@ -150,7 +107,7 @@ end = struct
   (* OCaml strings always waste two bytes at the end, so we take a power of two minus two
      to be sure we don't waste space. *)
   let length = 62
-  let alloc () = Bytes.create length
+  let alloc () = Basement.Stdlib_shim.Obj.magic_unique (Bytes.create length)
 
   external get16 : bytes -> pos:int -> int = "%caml_bytes_get16"
   external set16 : bytes -> pos:int -> int -> unit = "%caml_bytes_set16"
@@ -175,8 +132,69 @@ end = struct
   *)
 end
 
+module Isolated : sig
+  type 'a t
+
+  val make : (unit -> 'a) -> 'a t
+  val borrow : 'a t -> ('a -> unit) -> 'a t
+  val get : 'a. 'a t -> 'a
+end = struct
+  type 'a t = T : 'k Capsule.Key.t * ('a, 'k) Capsule.Data.t -> 'a t
+  [@@unsafe_allow_any_mode_crossing]
+
+  let make f =
+    let (P key) = Capsule.create () in
+    T (key, Capsule.Data.create f)
+  ;;
+
+  let borrow (T (key, data)) f =
+    let (), key =
+      Capsule.Key.access key ~f:(fun access : unit ->
+        f (Capsule.Data.unwrap ~access data))
+    in
+    T (key, data)
+  ;;
+
+  let get (T (key, data)) = Capsule.Data.project_shared ~key data
+end
+
+module Many = struct
+  type 'a t = { many : 'a } [@@unboxed]
+end
+
+module Unique : sig
+  type 'a t
+
+  val make : (unit -> 'a) -> 'a t
+  val exchange : 'a t -> (unit -> 'a) -> 'a Isolated.t
+  val set : 'a t -> (unit -> 'a) -> unit
+  val update : 'a t -> ('a -> unit) -> unit
+end = struct
+  type 'a t = 'a Isolated.t Or_null.t Many.t Unique.Ref.t
+
+  let make f = Unique.Ref.make { Many.many = This (Isolated.make f) }
+
+  let exchange t f =
+    match (Unique.Ref.exchange t { Many.many = This (Isolated.make f) }).many with
+    | Null -> assert false
+    | This isolated -> isolated
+  ;;
+
+  let set t f = Unique.Ref.set t { Many.many = This (Isolated.make f) }
+
+  let update t f =
+    let isolated =
+      match (Unique.Ref.exchange t { Many.many = Null }).many with
+      | Null -> assert false
+      | This isolated -> isolated
+    in
+    let isolated = Isolated.borrow isolated f in
+    Unique.Ref.set t { Many.many = This isolated }
+  ;;
+end
+
 type t_ =
-  { chunks : Chunk.t list
+  { chunks : Chunk.t Isolated.t list
   ; (* [num_bytes * 8 + extra_bits] is the number of bits stored in [chunks].
        The last [extra_bits] bits will be stored as the *least* significant bits
        of the appropriate pair of bytes of the last chunk. *)
@@ -185,9 +203,10 @@ type t_ =
   ; initial_pos : pos
   }
 
-type t = t_ Lazy.t
+type t = t_ Portable_lazy.t
 
-let memory_footprint_in_bytes (lazy t) =
+let memory_footprint_in_bytes lt =
+  let t = Portable_lazy.force lt in
   let num_fields = 4 in
   let header_words = 1 in
   let word_bytes =
@@ -219,9 +238,9 @@ let memory_footprint_in_bytes (lazy t) =
 
 module Builder = struct
   type t =
-    { mutable chunk : Chunk.t
+    { chunk : Chunk.t Unique.t
     ; mutable chunk_pos : int
-    ; mutable filled_chunks : Chunk.t list (* Filled chunks in reverse order *)
+    ; mutable filled_chunks : Chunk.t Isolated.t list (* Filled chunks in reverse order *)
     ; mutable offset : int
         (* Offset of the last saved position or newline plus
        one, or [initial_pos] *)
@@ -242,7 +261,7 @@ module Builder = struct
   let invariant t = if check_invariant then invariant t
 
   let create ?(initial_pos = beginning_of_file) () =
-    { chunk = Chunk.alloc ()
+    { chunk = Unique.make Chunk.alloc
     ; chunk_pos = 0
     ; filled_chunks = []
     ; offset = initial_pos.offset
@@ -255,7 +274,7 @@ module Builder = struct
   let reset t (pos : pos) =
     (* We need a new chunk as [contents] keeps the current chunk in the closure of the
        lazy value. *)
-    t.chunk <- Chunk.alloc ();
+    Unique.set t.chunk Chunk.alloc;
     t.chunk_pos <- 0;
     t.filled_chunks <- [];
     t.offset <- pos.offset;
@@ -265,14 +284,15 @@ module Builder = struct
   ;;
 
   let[@inline never] alloc_new_chunk t =
-    t.filled_chunks <- t.chunk :: t.filled_chunks;
-    t.chunk <- Chunk.alloc ();
+    let chunk = Unique.exchange t.chunk Chunk.alloc in
+    t.filled_chunks <- chunk :: t.filled_chunks;
     t.chunk_pos <- 0
   ;;
 
   let add_uint16 t n =
     if t.chunk_pos = Chunk.length then alloc_new_chunk t;
-    Chunk.set16 t.chunk ~pos:t.chunk_pos n
+    let chunk_pos = t.chunk_pos in
+    Unique.update t.chunk (fun chunk -> Chunk.set16 chunk ~pos:chunk_pos n)
   ;;
 
   let add_bits t n ~num_bits =
@@ -293,16 +313,17 @@ module Builder = struct
   let contents t =
     (* Flush the current [t.int_buf] *)
     add_uint16 t t.int_buf;
-    let rev_chunks = t.chunk :: t.filled_chunks in
+    let chunk = Unique.exchange t.chunk Chunk.alloc in
+    let rev_chunks = chunk :: t.filled_chunks in
     let chunk_pos = t.chunk_pos in
     let extra_bits = t.num_bits in
     let initial_pos = t.initial_pos in
-    lazy
+    Portable_lazy.from_fun (fun () ->
       { chunks = List.rev rev_chunks
       ; num_bytes = ((List.length rev_chunks - 1) * Chunk.length) + chunk_pos
       ; extra_bits
       ; initial_pos
-      }
+      })
   ;;
 
   let long_shift t n =
@@ -398,8 +419,8 @@ module Iterator : sig
   val advance_sexp_exn : t -> Sexp.t -> range
 end = struct
   type t =
-    { mutable chunk : Chunk.t
-    ; mutable chunks : Chunk.t list
+    { mutable chunk : Chunk.t Isolated.t
+    ; mutable chunks : Chunk.t Isolated.t list
     ; (* [num_bytes * 8 + extra_bits] is the number of bits available from [instr_pos] in
          [chunk :: chunks]. *)
       mutable num_bytes : int
@@ -413,7 +434,8 @@ end = struct
     ; mutable pending : pos option
     }
 
-  let create ((lazy p) : positions) =
+  let create (lp : positions) =
+    let p = Portable_lazy.force lp in
     match p.chunks with
     | [] -> assert false
     | chunk :: chunks ->
@@ -448,7 +470,7 @@ end = struct
   let fetch t =
     if t.instr_pos > t.num_bytes then no_more ();
     if t.instr_pos = Chunk.length then fetch_chunk t;
-    let v = Chunk.get16 t.chunk ~pos:t.instr_pos in
+    let v = Chunk.get16 (Isolated.get t.chunk) ~pos:t.instr_pos in
     let added_bits = if t.instr_pos = t.num_bytes then t.extra_bits else 16 in
     t.int_buf <- (t.int_buf lsl added_bits) lor (v land ((1 lsl added_bits) - 1));
     t.num_bits <- t.num_bits + added_bits;
