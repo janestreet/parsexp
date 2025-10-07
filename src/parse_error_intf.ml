@@ -20,27 +20,16 @@ module Reason = struct
     | Unclosed_paren
 end
 
-module type Parse_error = sig
-  type t [@@deriving_inline sexp_of]
-
-  include sig
-    [@@@ocaml.warning "-32"]
-
-    val sexp_of_t : t -> Sexplib0.Sexp.t
-  end
-  [@@ocaml.doc "@inline"]
-
-  [@@@end]
+module type Parse_error = sig @@ portable
+  type t : immutable_data [@@deriving sexp_of]
 
   val position : t -> Positions.pos
   val message : t -> string
 
   (** Report an error in a style similar to OCaml, for instance:
 
-      File "blah", line 42, character 10:
-      Error: s-expression parsing error;
-      unterminated quoted string.
-  *)
+      File "blah", line 42, character 10: Error: s-expression parsing error; unterminated
+      quoted string. *)
   val report : Format.formatter -> filename:string -> t -> unit
 
   exception Parse_error of t

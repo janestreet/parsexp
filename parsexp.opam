@@ -11,8 +11,12 @@ build: [
 ]
 depends: [
   "ocaml" {>= "5.1.0"}
+  "basement"
+  "ppx_js_style"
+  "ppx_sexp_conv"
   "sexplib0"
-  "dune"     {>= "3.11.0"}
+  "unique"
+  "dune"          {>= "3.17.0"}
 ]
 available: arch != "arm32" & arch != "x86_32"
 synopsis: "S-expression parsing library"

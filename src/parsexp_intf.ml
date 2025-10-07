@@ -2,7 +2,7 @@
 
 open! Import
 
-module type Parsexp = sig
+module type Parsexp = sig @@ portable
   module Conv_error = Conv_error
   module Of_sexp_error = Of_sexp_error
   module Old_parser_cont_state = Old_parser_cont_state

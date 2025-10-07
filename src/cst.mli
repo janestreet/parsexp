@@ -1,10 +1,11 @@
+@@ portable
+
 (** Concrete syntax tree of s-expressions *)
 
 (** This module exposes a type that describe the full contents of a source file containing
     s-expressions.
 
-    One can use this type to do low-level rewriting of s-expression files.
-*)
+    One can use this type to do low-level rewriting of s-expression files. *)
 
 open! Import
 
@@ -36,18 +37,7 @@ and comment =
       ; comments : comment list
       ; sexp : t
       }
-[@@deriving_inline sexp_of]
-
-include sig
-  [@@@ocaml.warning "-32"]
-
-  val sexp_of_t : t -> Sexplib0.Sexp.t
-  val sexp_of_t_or_comment : t_or_comment -> Sexplib0.Sexp.t
-  val sexp_of_comment : comment -> Sexplib0.Sexp.t
-end
-[@@ocaml.doc "@inline"]
-
-[@@@end]
+[@@deriving sexp_of]
 
 val compare : t -> t -> int
 val compare_t_or_comment : t_or_comment -> t_or_comment -> int

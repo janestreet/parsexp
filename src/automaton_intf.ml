@@ -2,7 +2,7 @@
 
 open! Import
 
-module type Automaton = sig
+module type Automaton = sig @@ portable
   module Stack = Automaton_stack
 
   include module type of struct

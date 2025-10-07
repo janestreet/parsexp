@@ -1,3 +1,5 @@
+@@ portable
+
 open! Import
 
 type t =
@@ -7,15 +9,6 @@ type t =
   | Parsing_list
   | Parsing_sexp_comment
   | Parsing_block_comment
-[@@deriving_inline sexp_of]
-
-include sig
-  [@@@ocaml.warning "-32"]
-
-  val sexp_of_t : t -> Sexplib0.Sexp.t
-end
-[@@ocaml.doc "@inline"]
-
-[@@@end]
+[@@deriving sexp_of]
 
 val to_string : t -> string

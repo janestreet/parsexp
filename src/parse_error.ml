@@ -30,17 +30,7 @@ let report ppf ~filename t =
     msg
 ;;
 
-exception Parse_error of t [@@deriving_inline sexp]
-
-let () =
-  Sexplib0.Sexp_conv.Exn_converter.add [%extension_constructor Parse_error] (function
-    | Parse_error arg0__001_ ->
-      let res0__002_ = sexp_of_t arg0__001_ in
-      Sexplib0.Sexp.List [ Sexplib0.Sexp.Atom "parse_error.ml.Parse_error"; res0__002_ ]
-    | _ -> assert false)
-;;
-
-[@@@end]
+exception Parse_error of t [@@deriving sexp]
 
 let raise (reason : Reason.t) position ~at_eof ~atom_buffer =
   let message =

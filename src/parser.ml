@@ -3,7 +3,7 @@ include Parser_intf
 module A = Automaton
 
 let kind_to_stack
-  : type stack.
+  : type (stack : value mod contended portable).
     ('state, stack) Automaton_state.Kind.t -> (module Stack with type t = stack)
   =
   fun (type state) (kind : (state, stack) Automaton_state.Kind.t) ->
@@ -14,7 +14,11 @@ let kind_to_stack
   | Cst -> (module Automaton_stack.For_cst : Stack with type t = stack)
 ;;
 
-let make (type stack state parsed_value) kind mode make_value
+let make
+  (type (stack : value mod contended portable) state parsed_value)
+  kind
+  mode
+  make_value
   : (module S
        with type parsed_value = parsed_value
         and type State.t = (state, stack) Automaton_state.t
@@ -28,7 +32,7 @@ let make (type stack state parsed_value) kind mode make_value
     module State = struct
       type t = (state, Stack.t) Automaton_state.t
 
-      let create ?pos () = A.create ?initial_pos:pos mode kind
+      let create ?pos () = A.create ?initial_pos:pos (mode ()) kind
       let reset = A.reset
       let offset = A.offset
       let line = A.line
@@ -61,7 +65,11 @@ let make (type stack state parsed_value) kind mode make_value
   end)
 ;;
 
-let make_eager (type stack state parsed_value) kind make_value
+let make_eager
+  (type (stack : value mod contended portable) state
+  (parsed_value : value mod contended portable))
+  kind
+  make_value
   : (module S_eager
        with type parsed_value = parsed_value
         and type State.t = (state, stack) Automaton_state.t
