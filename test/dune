@@ -1,7 +1,7 @@
 (library
  (name parsexp_test)
- (libraries base stdio parsexp parsexp_symbolic_automaton core
-   expect_test_helpers_core sexplib)
+ (libraries base core expect_test_helpers_core parsexp
+   parsexp_symbolic_automaton sexplib stdio)
  (preprocess
   (pps ppx_jane)))
 
