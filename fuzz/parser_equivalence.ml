@@ -3,12 +3,12 @@
    It checks the equivalence of the various parsexp parsers, as well some sexplib parsers.
    This check is manual, it is not run in hydra in any way.
 
-   This requires instrumentation, so I build my own compiler like so:
-   # ./configure -prefix $PWD/installed -afl-instrument && make world world.opt install
-   Without a custom compiler, the stdlib will not be instrumented.
+   This requires instrumentation, so I build my own compiler like so: # ./configure
+   -prefix $PWD/installed -afl-instrument && make world world.opt install Without a custom
+   compiler, the stdlib will not be instrumented.
 
-   The way I run it: {v
-
+   The way I run it:
+   {v
      function fuzz-run {
        (
            mkdir -p input
@@ -38,12 +38,10 @@
          done
        ) < /dev/null |& less -R
      }
-
    v}
 
-   This is needed because the cli of afl-fuzz is wonky.
-   Run fuzz-run to actually run tests. Run fuzz-result either during the tests or after to
-   see the failures so far.
+   This is needed because the cli of afl-fuzz is wonky. Run fuzz-run to actually run
+   tests. Run fuzz-result either during the tests or after to see the failures so far.
 *)
 
 open Base

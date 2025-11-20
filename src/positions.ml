@@ -1,4 +1,4 @@
-(* This module builds a buffer of "instructions", in order to represent a compact sequence
+(*=This module builds a buffer of "instructions", in order to represent a compact sequence
    of delimiting positions and newlines. The parser stores the positions of each:
 
    - newline
@@ -115,19 +115,19 @@ end = struct
   (* If we want to make a [Positions.t] serializable:
 
      {[
-       external bswap16 : int -> int = "%bswap16";;
+       external bswap16 : int -> int = "%bswap16"
 
        let get16 =
-         if Caml.Sys.arch_big_endian then
-           fun buf ~pos -> get16 buf ~pos |> bswap16
-         else
-           get16
+         if Caml.Sys.arch_big_endian
+         then fun buf ~pos -> get16 buf ~pos |> bswap16
+         else get16
+       ;;
 
        let set16 =
-         if Caml.Sys.arch_big_endian then
-           fun buf ~pos x -> set16 buf ~pos (bswap16 x)
-         else
-           set16
+         if Caml.Sys.arch_big_endian
+         then fun buf ~pos x -> set16 buf ~pos (bswap16 x)
+         else set16
+       ;;
      ]}
   *)
 end
@@ -139,6 +139,8 @@ module Isolated : sig @@ portable
   val borrow : 'a t @ unique -> ('a -> unit) @ portable -> 'a t @ unique
   val get : ('a : value mod portable). 'a t -> 'a @ shared
 end = struct
+  module Capsule = Capsule_expert
+
   type ('a : value_or_null) t : value mod contended portable =
     | T : 'k Capsule.Key.t * ('a, 'k) Capsule.Data.t @@ aliased -> 'a t
   [@@unsafe_allow_any_mode_crossing]
@@ -196,9 +198,9 @@ end
 
 type t_ =
   { chunks : Chunk.t Isolated.t list
-  ; (* [num_bytes * 8 + extra_bits] is the number of bits stored in [chunks].
-       The last [extra_bits] bits will be stored as the *least* significant bits
-       of the appropriate pair of bytes of the last chunk. *)
+  ; (* [num_bytes * 8 + extra_bits] is the number of bits stored in [chunks]. The last
+       [extra_bits] bits will be stored as the *least* significant bits of the appropriate
+       pair of bytes of the last chunk. *)
     num_bytes : int
   ; extra_bits : int
   ; initial_pos : pos
@@ -243,11 +245,10 @@ module Builder = struct
     ; mutable chunk_pos : int
     ; mutable filled_chunks : Chunk.t Isolated.t list (* Filled chunks in reverse order *)
     ; mutable offset : int
-        (* Offset of the last saved position or newline plus
-       one, or [initial_pos] *)
+        (* Offset of the last saved position or newline plus one, or [initial_pos] *)
     ; mutable int_buf : int
-        (* the [num_bits] least significant bits of [int_buf]
-       are the bits not yet pushed to [chunk]. *)
+        (* the [num_bits] least significant bits of [int_buf] are the bits not yet pushed
+           to [chunk]. *)
     ; mutable num_bits : int (* number of bits stored in [int_buf] *)
     ; mutable initial_pos : pos
     }
@@ -488,8 +489,8 @@ end = struct
     n
   ;;
 
-  (* [offset_shift] and [offset_shift_num_bits] encode the offset number
-     specified by the immediately preceding [110] instructions. *)
+  (* [offset_shift] and [offset_shift_num_bits] encode the offset number specified by the
+     immediately preceding [110] instructions. *)
   let rec advance t ~skip ~offset_shift ~offset_shift_num_bits =
     match next_instruction_bits t ~num_bits:1 with
     | 0 ->

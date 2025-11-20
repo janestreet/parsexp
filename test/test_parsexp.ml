@@ -282,8 +282,8 @@ let fetch_sexp (stream : char Queue.t) =
   match hot_loop state stream P.Stack.empty with
   | () -> None
   | exception Got_sexp sexp ->
-    (* This test is true if the s-expression includes the last character passed to
-       the parser *)
+    (* This test is true if the s-expression includes the last character passed to the
+       parser *)
     if P.State.offset state > count - Queue.length stream
     then Queue.dequeue_and_ignore_exn stream;
     Some sexp
@@ -330,8 +330,8 @@ let%expect_test "eager parser raise" =
 
 let all_short_strings () =
   let all_chars =
-    (* should have an example from every character class
-       (see [Char_class] in test_coverage.ml) *)
+    (* should have an example from every character class (see [Char_class] in
+       test_coverage.ml) *)
     [ '\000'
     ; '\001'
     ; '\t'
@@ -357,14 +357,13 @@ let all_short_strings () =
   |> List.map ~f:String.of_char_list
 ;;
 
-(*
-   A thorough test of [Eager] semantics expressed in terms of [Many].
+(* A thorough test of [Eager] semantics expressed in terms of [Many].
 
    - feed chars one by one,
    - note when sexps are detected,
    - assert that the position reported is how many chars we fed or 1 fewer
-   - assert that the resulting chunks if we split at those positions can be parsed
-     to the same sexps as the sexps being reported
+   - assert that the resulting chunks if we split at those positions can be parsed to the
+     same sexps as the sexps being reported
    - assert that the whole thing parses iff it parses with [Many]
 *)
 let%expect_test "eager parser semantics" =

@@ -88,9 +88,8 @@ module type Parsexp = sig @@ portable
       (Automaton_state.For_cst.t, Automaton_stack.For_cst.t) Automaton_state.t
      and type Stack.t = Automaton_stack.For_cst.t
 
-  (*_ These type synonyms are introduced because ocaml <4.06
-    do not support destructive substitutions with `type 'a t1 = t2`
-    or `type t1 = 'a t2`. *)
+  (*_ These type synonyms are introduced because ocaml <4.06 do not support destructive
+      substitutions with `type 'a t1 = t2` or `type t1 = 'a t2`. *)
   type 'a id = 'a
   type sexp_list = Sexp.t list
 

@@ -249,8 +249,8 @@ let toplevel_sexp_or_comment_added state stack ~delta =
        set_error_state state;
        if reraise_notrace then raise_notrace e else raise e
      | stack ->
-       (* This assert is not a full protection against the user mutating the state but
-          it should catch most cases. *)
+       (* This assert is not a full protection against the user mutating the state but it
+          should catch most cases. *)
        assert (state.offset = saved_offset + delta && state.full_sexps = saved_full_sexps);
        state.offset <- saved_offset;
        reset_positions state;
@@ -292,10 +292,9 @@ let sexp_added : type u s. (u, s) Automaton_state.t -> s -> delta:int -> s =
 let rec make_list acc : Automaton_stack.t -> Automaton_stack.t = function
   | Empty -> assert false
   | Open stack ->
-    (* [opaque_identity] is needed to prevent the compiler from sharing multiple copies
-       of [List []] after inlining. Such sharing is problematic because it prevents us
-       from computing the correct sexp locations, since we base that on
-       physical identity. *)
+    (* [opaque_identity] is needed to prevent the compiler from sharing multiple copies of
+       [List []] after inlining. Such sharing is problematic because it prevents us from
+       computing the correct sexp locations, since we base that on physical identity. *)
     Sexp (List (Sys.opaque_identity acc), stack)
   | Sexp (sexp, stack) -> make_list (sexp :: acc) stack
 ;;
@@ -336,8 +335,7 @@ let closing : type u s. (u, s) Automaton_state.t -> char -> s -> s =
       match state.kind with
       | Positions ->
         (* Note we store end positions as inclusive in [Positions.t], so we use [delta:0],
-           while in the [Cst] case we save directly the final ranges, so we use
-           [delta:1]. *)
+           while in the [Cst] case we save directly the final ranges, so we use [delta:1]. *)
         if is_not_ignoring state then add_pos state ~delta:0;
         stack
       | Sexp -> if is_not_ignoring state then make_list [] stack else stack

@@ -32,9 +32,8 @@ let compare_t_or_comment = Stdlib.compare
 let compare_comment = Stdlib.compare
 
 module Forget = struct
-  (* In cps to prevent non-tail recursion.
-     The polymorphism in the signature ensures that each function returns
-     only through the continuation. *)
+  (* In cps to prevent non-tail recursion. The polymorphism in the signature ensures that
+     each function returns only through the continuation. *)
   module Cps : sig @@ portable
     val forget_t : t -> (Sexp.t -> 'r) -> 'r
     val forget_toc : t_or_comment -> (Sexp.t option -> 'r) -> 'r
