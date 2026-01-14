@@ -120,7 +120,7 @@ module type Parsexp = sig @@ portable
   (*_ For tests *)
   (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
 
-    https://opensource.janestreet.com/standards/#private-submodules *)
+      https://opensource.janestreet.com/standards/#private-submodules *)
   module Private : sig
     module Automaton = Automaton
     module Automaton_stack = Automaton_stack
