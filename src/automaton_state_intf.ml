@@ -8,7 +8,7 @@ end
 
 module For_cst = struct
   type t =
-    { token_buffer : Buffer.t (** Starting positions of the current token **)
+    { token_buffer : Buffer.t (** Starting positions of the current token *)
     ; mutable token_start_pos : Positions.pos
     }
 end
@@ -37,9 +37,9 @@ module rec State : sig
     ; user_state : 'u
     ; mode : ('u, 's) Mode.t
     ; mutable full_sexps : int
-    ; mutable offset : int (** global offset **)
+    ; mutable offset : int (** global offset *)
     ; mutable line_number : int
-    ; mutable bol_offset : int (** offset of beginning of line **)
+    ; mutable bol_offset : int (** offset of beginning of line *)
     }
 end =
   State

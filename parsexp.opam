@@ -12,6 +12,7 @@ build: [
 depends: [
   "ocaml" {>= "5.1.0"}
   "basement"
+  "capsule0"
   "ppx_js_style"
   "ppx_sexp_conv"
   "sexplib0"

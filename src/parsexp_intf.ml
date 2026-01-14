@@ -88,9 +88,8 @@ module type Parsexp = sig
       (Automaton_state.For_cst.t, Automaton_stack.For_cst.t) Automaton_state.t
      and type Stack.t = Automaton_stack.For_cst.t
 
-  (*_ These type synonyms are introduced because ocaml <4.06
-    do not support destructive substitutions with `type 'a t1 = t2`
-    or `type t1 = 'a t2`. *)
+  (*_ These type synonyms are introduced because ocaml <4.06 do not support destructive
+      substitutions with `type 'a t1 = t2` or `type t1 = 'a t2`. *)
   type 'a id = 'a
   type sexp_list = Sexp.t list
 
@@ -121,7 +120,7 @@ module type Parsexp = sig
   (*_ For tests *)
   (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
 
-    https://opensource.janestreet.com/standards/#private-submodules *)
+      https://opensource.janestreet.com/standards/#private-submodules *)
   module Private : sig
     module Automaton = Automaton
     module Automaton_stack = Automaton_stack

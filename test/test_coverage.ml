@@ -6,11 +6,11 @@ open Parsexp_symbolic_automaton.Automaton
    Each s-expression is parsed with both parsexp and sexplib and compared to the expected
    s-expression. We assert that both parsers agree with the expected result.
 
-   While parsing, we record visited transition. At the end of all tests, we check that
-   the full table is visited.
+   While parsing, we record visited transition. At the end of all tests, we check that the
+   full table is visited.
 
-   These tests don't check that comments and sexps with layout are parsed correctly,
-   they only test the main parser.
+   These tests don't check that comments and sexps with layout are parsed correctly, they
+   only test the main parser.
 *)
 
 (* Compute the classes of character that give the same transition whatever the state. *)
@@ -605,8 +605,8 @@ let%expect_test "coverage" =
     ~f:(fun (input, sexplib, sexplib_lexer) ->
       let suppress =
         (* there are many examples where continuation-based parser fails and lexer
-           succeeds so we filter these out: lexer interprets broken hex and decimal
-           escape sequences as if they are not escape sequences at all
+           succeeds so we filter these out: lexer interprets broken hex and decimal escape
+           sequences as if they are not escape sequences at all
 
            Also lexer interprets "\\\r" differently: it keeps the slash, but we drop the
            slash

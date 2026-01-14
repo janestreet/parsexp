@@ -13,9 +13,9 @@ let dummy_sexplib_error () =
 let sexplib_sexps_of_string str : Sexp.t list =
   (* [ws_buf] must contain a single space character *)
   let feed_end_of_input ~this_parse ~ws_buf =
-    (* When parsing atoms, the incremental parser cannot tell whether
-       it is at the end until it hits whitespace.  We therefore feed it
-       one space to determine whether it is finished. *)
+    (* When parsing atoms, the incremental parser cannot tell whether it is at the end
+       until it hits whitespace. We therefore feed it one space to determine whether it is
+       finished. *)
     match this_parse ~pos:0 ~len:1 ws_buf with
     | Sexplib.Sexp.Done (sexp, _) -> Ok sexp
     | Cont (cont_state, _) -> Error cont_state

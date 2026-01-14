@@ -40,9 +40,9 @@ let raise (reason : Reason.t) position ~at_eof ~atom_buffer =
        At the time of writing this, a simple layer on top of parsexp to implement the
        sexplib API is passing all the sexplib tests.
 
-       Note that parsexp matches the semantic of Sexp.parse which is slightly
-       different from the ocamllex/ocamlyacc based parser of Sexplib. The latter one
-       is less tested and assumed to be less used. *)
+       Note that parsexp matches the semantic of Sexp.parse which is slightly different
+       from the ocamllex/ocamlyacc based parser of Sexplib. The latter one is less tested
+       and assumed to be less used. *)
     match reason with
     | Unexpected_char_parsing_hex_escape -> "unterminated hexadecimal escape sequence"
     | Unexpected_char_parsing_dec_escape -> "unterminated decimal escape sequence"

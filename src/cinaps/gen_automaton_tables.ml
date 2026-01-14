@@ -1,5 +1,5 @@
-(* Parsing of S-expression. The parsing is written as an automaton for which
-   we provide different implementations of actions.
+(* Parsing of S-expression. The parsing is written as an automaton for which we provide
+   different implementations of actions.
 *)
 
 open! Base

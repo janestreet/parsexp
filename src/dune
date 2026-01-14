@@ -1,6 +1,6 @@
 (library
  (name parsexp)
  (public_name parsexp)
- (libraries basement sexplib0 unique)
+ (libraries basement capsule0.expert sexplib0 unique)
  (preprocess
   (pps ppx_sexp_conv -deriving-keep-w32=impl ppx_js_style -check-doc-comments)))

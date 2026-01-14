@@ -12,8 +12,8 @@ let initial_user_state : type u s. (u, s) Kind.t -> Positions.pos -> u =
   | Sexp -> ()
   | Sexp_with_positions -> Positions.Builder.create ~initial_pos ()
   | Cst ->
-    (* [token_start_pos] is set to a dummy location here. It is properly set when we
-       start to capture a token from the input *)
+    (* [token_start_pos] is set to a dummy location here. It is properly set when we start
+       to capture a token from the input *)
     { token_buffer = Buffer.create 128; token_start_pos = Positions.beginning_of_file }
 ;;
 
