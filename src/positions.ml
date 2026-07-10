@@ -132,36 +132,19 @@ end = struct
   *)
 end
 
-module Isolated : sig
-  type 'a t
+module Isolated = struct
+  open Capsule_prim.Extended
 
-  val make : (unit -> 'a) -> 'a t
-  val borrow : 'a t -> ('a -> unit) -> 'a t
-  val get : 'a. 'a t -> 'a
-end = struct
-  module Capsule = Capsule_expert
+  type 'a t = 'a aliased Owned.t
 
-  type 'a t = T : 'k Capsule.Key.t * ('a, 'k) Capsule.Data.t -> 'a t
-  [@@unsafe_allow_any_mode_crossing]
+  let make f : _ t = Owned.create (fun () -> { aliased = f () })
 
-  let make f =
-    let (P key) = Capsule.create () in
-    T (key, Capsule.Data.create f)
+  let borrow (t : _ t) f =
+    let t, () = Owned.with_ t ~f:(fun x -> f x.aliased) in
+    t
   ;;
 
-  let borrow (T (key, data)) f =
-    let (), key =
-      Capsule.Key.access key ~f:(fun access : unit ->
-        f (Capsule.Data.unwrap ~access data))
-    in
-    T (key, data)
-  ;;
-
-  let get (T (key, data)) = Capsule.Data.project_shared ~key data
-end
-
-module Many = struct
-  type 'a t = { many : 'a } [@@unboxed]
+  let get t = (Owned.freeze t |> Frozen.unwrap).aliased
 end
 
 module Unique : sig
@@ -172,26 +155,26 @@ module Unique : sig
   val set : 'a t -> (unit -> 'a) -> unit
   val update : 'a t -> ('a -> unit) -> unit
 end = struct
-  type 'a t = 'a Isolated.t Or_null.t Many.t Unique.Ref.t
+  type 'a t = 'a Isolated.t Or_null.t many Unique.Ref.t
 
-  let make f = Unique.Ref.make { Many.many = This (Isolated.make f) }
+  let make f = Unique.Ref.make { many = This (Isolated.make f) }
 
   let exchange t f =
-    match (Unique.Ref.exchange t { Many.many = This (Isolated.make f) }).many with
+    match (Unique.Ref.exchange t { many = This (Isolated.make f) }).many with
     | Null -> assert false
     | This isolated -> isolated
   ;;
 
-  let set t f = Unique.Ref.set t { Many.many = This (Isolated.make f) }
+  let set t f = Unique.Ref.set t { many = This (Isolated.make f) }
 
   let update t f =
     let isolated =
-      match (Unique.Ref.exchange t { Many.many = Null }).many with
+      match (Unique.Ref.exchange t { many = Null }).many with
       | Null -> assert false
       | This isolated -> isolated
     in
     let isolated = Isolated.borrow isolated f in
-    Unique.Ref.set t { Many.many = This isolated }
+    Unique.Ref.set t { many = This isolated }
   ;;
 end
 
