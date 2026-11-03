@@ -95,6 +95,7 @@ module Chunk : sig @@ portable
   val length : int
 
   val alloc : unit -> t @ unique
+  val copy : t @ shared -> t @ unique
 
   (** [get16 ~pos] and [set16 ~pos] manipulate the [pos/2]th stored value. [pos] must be
       even. [set16 x] only uses the 16 least significant bits of [x]. *)
@@ -111,6 +112,15 @@ end = struct
 
   external get16 : bytes @ shared -> pos:int -> int @@ portable = "%caml_bytes_get16"
   external set16 : bytes -> pos:int -> int -> unit @@ portable = "%caml_bytes_set16"
+
+  let copy t =
+    let copy = alloc () in
+    for i = 0 to (length / 2) - 1 do
+      let pos = i * 2 in
+      set16 copy ~pos (get16 t ~pos)
+    done;
+    Basement.Stdlib_shim.Obj.magic_unique copy
+  ;;
 
   (* If we want to make a [Positions.t] serializable:
 
@@ -140,8 +150,8 @@ module Isolated = struct
   let make f : _ t = Owned.create (fun () -> { aliased = f () })
 
   let borrow (t : _ t) f =
-    let #(t, ()) = Owned.with_ t ~f:(fun x -> f x.aliased) in
-    t
+    let #(t, result) = Owned.with_ t ~f:(fun x -> f x.aliased) in
+    t, result
   ;;
 
   let get t = (Owned.freeze t |> Frozen.unwrap).aliased
@@ -154,6 +164,7 @@ module Unique : sig @@ portable
   val exchange : 'a t -> (unit -> 'a @ unique) @ portable -> 'a Isolated.t @ unique
   val set : 'a t -> (unit -> 'a @ unique) @ portable -> unit
   val update : 'a t -> ('a -> unit) @ portable -> unit
+  val snapshot : 'a t -> ('a @ shared -> 'b @ unique) @ portable -> 'b Isolated.t @ unique
 end = struct
   type 'a t = 'a Isolated.t Or_null.t many Unique.Ref.t
 
@@ -173,8 +184,23 @@ end = struct
       | Null -> assert false
       | This isolated -> isolated
     in
-    let isolated = Isolated.borrow isolated f in
+    let isolated, () = Isolated.borrow isolated f in
     Unique.Ref.set t { many = This isolated }
+  ;;
+
+  let snapshot t f =
+    let isolated =
+      match (Unique.Ref.exchange t { many = Null }).many with
+      | Null -> assert false
+      | This isolated -> isolated
+    in
+    let isolated, snapshot =
+      Isolated.borrow isolated (fun value ->
+        let copied = f value in
+        Isolated.make (Basement.Stdlib_shim.Obj.magic_portable (fun () -> copied)))
+    in
+    Unique.Ref.set t { many = This isolated };
+    snapshot
   ;;
 end
 
@@ -279,6 +305,33 @@ module Builder = struct
     Unique.update t.chunk (fun chunk -> Chunk.set16 chunk ~pos:chunk_pos n)
   ;;
 
+  module Collected = struct
+    type t =
+      #{ chunk : Chunk.t Isolated.t
+       ; chunk_pos : int @@ aliased
+       ; rev_chunks : Chunk.t Isolated.t list @@ aliased
+       }
+  end
+
+  let add_uint16_last (t : Collected.t) n : Collected.t =
+    let t : Collected.t =
+      match t.#chunk_pos = Chunk.length with
+      | true ->
+        #{ chunk = Isolated.make Chunk.alloc
+         ; chunk_pos = 0
+         ; rev_chunks = t.#chunk :: t.#rev_chunks
+         }
+      | false ->
+        (* equivalent to [t], but OxCaml refuses to accept plain [t] here because it was
+           partially consumed *)
+        #{ t with chunk = t.#chunk }
+    in
+    let chunk, () =
+      Isolated.borrow t.#chunk (fun chunk -> Chunk.set16 chunk ~pos:t.#chunk_pos n)
+    in
+    #{ t with chunk }
+  ;;
+
   let add_bits t n ~num_bits =
     let int_buf = (t.int_buf lsl num_bits) lor n in
     let num_bits = t.num_bits + num_bits in
@@ -295,16 +348,18 @@ module Builder = struct
   ;;
 
   let contents t =
-    (* Flush the current [t.int_buf] *)
-    add_uint16 t t.int_buf;
-    let chunk = Unique.exchange t.chunk Chunk.alloc in
-    let rev_chunks = chunk :: t.filled_chunks in
+    let chunk = Unique.snapshot t.chunk Chunk.copy in
     let chunk_pos = t.chunk_pos in
+    let rev_chunks = t.filled_chunks in
+    let int_buf = t.int_buf in
     let extra_bits = t.num_bits in
     let initial_pos = t.initial_pos in
     Portable_lazy.from_fun (fun () ->
-      { chunks = List.rev rev_chunks
-      ; num_bytes = ((List.length rev_chunks - 1) * Chunk.length) + chunk_pos
+      let (#{ chunk; rev_chunks; chunk_pos } : Collected.t) =
+        add_uint16_last #{ chunk; rev_chunks; chunk_pos } int_buf
+      in
+      { chunks = List.rev (chunk :: rev_chunks)
+      ; num_bytes = (List.length rev_chunks * Chunk.length) + chunk_pos
       ; extra_bits
       ; initial_pos
       })

@@ -21,6 +21,10 @@ let cases =
   ; Printf.sprintf "%*s." 40 ""
   ; Printf.sprintf "%*s." 300 ""
   ; String.concat (List.init (62 * 4) ~f:(fun _i -> ".."))
+    (* Fills the positions buffer to exactly one chunk boundary (496 bits = 31 * 16), then
+       a gapped position adds 9 leftover bits that must spill into a fresh chunk. This
+       exercises [Builder.add_uint16_last]'s chunk-boundary branch. *)
+  ; String.concat (List.init (62 * 4) ~f:(fun _i -> "..")) ^ "    ."
   ]
 ;;
 
@@ -200,6 +204,41 @@ module Annotated = struct
       List.iter children ~f:(iter ~f)
   ;;
 end
+
+let%expect_test "Builder.contents snapshots without finalizing" =
+  let add_offsets builder offsets =
+    List.iter offsets ~f:(fun offset -> Positions.Builder.add builder ~offset)
+  in
+  let matches ?cr positions offsets =
+    let pos offset : Positions.pos = { line = 1; col = offset; offset } in
+    let expected = List.map offsets ~f:pos in
+    Expect_test_helpers_core.require
+      ?cr
+      ([%compare.equal: Positions.pos list] (Positions.to_list positions) expected)
+  in
+  (* Gapped offsets so the test is sensitive to corruption even when uninitialized memory
+     happens to be zero (which decodes to a run of consecutive positions). *)
+  let offsets = [ 0; 9; 21; 40 ], [ 66; 99; 130; 170 ] in
+  let builder = Positions.Builder.create () in
+  (* contents have the expected offsets *)
+  add_offsets builder (fst offsets);
+  let contents = Positions.Builder.contents builder in
+  matches contents (fst offsets);
+  [%expect {| |}];
+  (* contents have the same offsets even if the builder has been fed more input *)
+  let snapshot_offsets =
+    Positions.to_list contents |> List.map ~f:(fun pos -> pos.offset)
+  in
+  add_offsets builder (snd offsets);
+  matches contents snapshot_offsets;
+  [%expect {| |}];
+  (* calling contents again returns the new positions *)
+  matches (Positions.Builder.contents builder) (fst offsets @ snd offsets) ~cr:CR_soon;
+  [%expect {| |}];
+  (* contents is idempotent *)
+  matches (Positions.Builder.contents builder) (fst offsets @ snd offsets) ~cr:CR_soon;
+  [%expect {| |}]
+;;
 
 let%expect_test "find_sub_sexp_phys" =
   List.iter cases_for_find_sub_sexp ~f:(fun input ->

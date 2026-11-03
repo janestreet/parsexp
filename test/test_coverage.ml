@@ -18,7 +18,8 @@ module Char_class = struct
   open Parsexp_symbolic_automaton.Table
 
   module T = struct
-    type t = Transition.t Or_parse_error_reason.t list [@@deriving compare, sexp_of, hash]
+    type t = Transition.t Or_parse_error_reason.t list
+    [@@deriving compare ~localize, sexp_of, hash]
   end
 
   let compute (table : t) =
@@ -87,7 +88,7 @@ module A = Private.Automaton
 type 'a result =
   | Sexp of 'a
   | Error
-[@@deriving compare, sexp_of]
+[@@deriving compare ~localize, sexp_of]
 
 let transition_count = State.count * Char_class.count
 let transition_seen = Array.create false ~len:transition_count

@@ -9,12 +9,12 @@ module type Automaton = sig @@ portable
     include Automaton_state
   end
 
-  val feed_bytes : (_, 'stack) t -> local_ bytes -> 'stack -> 'stack
-  val feed_string : (_, 'stack) t -> local_ string -> 'stack -> 'stack
+  val feed_bytes : (_, 'stack) t -> bytes @ local -> 'stack -> 'stack
+  val feed_string : (_, 'stack) t -> string @ local -> 'stack -> 'stack
 
   val feed_subbytes
     :  (_, 'stack) t
-    -> local_ bytes
+    -> bytes @ local
     -> pos:int
     -> len:int
     -> 'stack
@@ -22,7 +22,7 @@ module type Automaton = sig @@ portable
 
   val feed_substring
     :  (_, 'stack) t
-    -> local_ string
+    -> string @ local
     -> pos:int
     -> len:int
     -> 'stack
