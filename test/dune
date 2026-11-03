@@ -3,6 +3,6 @@
  (libraries base core expect_test_helpers_core parsexp
    parsexp_symbolic_automaton sexplib stdio)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))
 
 (ocamllex lexer)
